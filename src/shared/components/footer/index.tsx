@@ -24,7 +24,7 @@ export const Footer = ({
           <h4>Links Rápidos</h4>
           <ul>
             <li><button onClick={() => navigation('/denuncia')}>Fazer denúncia</button></li>
-            <li><button onClick={() => navigation('/documentos-norteadores')}>Documentos Norteadores</button></li>
+            <li><button onClick={() => navigation('/documentos-norteadores/1')}>Documentos Norteadores</button></li>
           </ul>
         </div>
 

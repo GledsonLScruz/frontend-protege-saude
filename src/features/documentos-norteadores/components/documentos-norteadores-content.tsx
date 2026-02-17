@@ -1,81 +1,147 @@
-import React from 'react'
-import './documentos-norteadores-content.css'
-import legalDocuments from '../utils/legal-documents.json'
+import React from 'react';
+import './documentos-norteadores-content.css';
 import { Header } from '../../../shared/components/header/components';
 import { useNavigate } from 'react-router-dom';
 import { Footer } from '../../../shared/components/footer';
+import {
+  DocumentoNorteador,
+  DocumentosNorteadoresService,
+} from '../documentos-norteadores-service';
 
-interface LegalDocument {
-  title: string;
-  description: string;
-  focusPoints: {
-    title: string; 
-    page?: number;
-  }[];
-  url: string;
-  localPath: string;
-  image: string;
+type DownloadStatus = 'downloading' | 'success' | 'error';
+
+const documentosNorteadoresService = new DocumentosNorteadoresService();
+
+interface DocumentosNorteadoresContentProps {
+  profissaoId: number;
 }
 
-const DocumentosNorteadoresContent: React.FC = () => {
+const getFilename = (documento: DocumentoNorteador, url: string): string => {
+  try {
+    const parsedUrl = new URL(url);
+    const urlFilename = parsedUrl.pathname.split('/').pop();
+    if (urlFilename) {
+      return decodeURIComponent(urlFilename);
+    }
+  } catch {
+    return `${documento.title}.pdf`;
+  }
+
+  return `${documento.title}.pdf`;
+};
+
+const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> = ({
+  profissaoId,
+}) => {
   const navigate = useNavigate();
 
-  const [downloadStatus, setDownloadStatus] = React.useState<Record<string, string>>({});
+  const [documentos, setDocumentos] = React.useState<DocumentoNorteador[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [downloadStatus, setDownloadStatus] = React.useState<
+    Record<number, DownloadStatus>
+  >({});
 
-  const handleDownload = async (doc: LegalDocument, index: number) => {
+  React.useEffect(() => {
+    let isActive = true;
+
+    const loadDocumentos = async () => {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const response = await documentosNorteadoresService.listByProfissao(profissaoId);
+        if (!isActive) {
+          return;
+        }
+
+        setDocumentos(response);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        console.error('Erro ao carregar documentos norteadores:', error);
+        setDocumentos([]);
+        setErrorMessage(
+          'Não foi possível carregar os documentos desta profissão no momento.'
+        );
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadDocumentos();
+
+    return () => {
+      isActive = false;
+    };
+  }, [profissaoId]);
+
+  const clearDownloadStatus = (documentoId: number) => {
+    setTimeout(() => {
+      setDownloadStatus((prevState) => {
+        const nextState = { ...prevState };
+        delete nextState[documentoId];
+        return nextState;
+      });
+    }, 3000);
+  };
+
+  const handleDownload = async (documento: DocumentoNorteador) => {
+    const sourceUrl = documento.fileUrl ?? documento.onlineUrl;
+    const documentoId = documento.id;
+
+    if (!sourceUrl) {
+      setDownloadStatus((prevState) => ({ ...prevState, [documentoId]: 'error' }));
+      clearDownloadStatus(documentoId);
+      return;
+    }
+
     try {
-      setDownloadStatus({ ...downloadStatus, [index]: 'downloading' });
+      setDownloadStatus((prevState) => ({ ...prevState, [documentoId]: 'downloading' }));
 
-      const response = await fetch(doc.localPath);
+      const response = await fetch(sourceUrl);
 
       if (!response.ok) {
-        throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+        throw new Error(`Falha no download: ${response.status} ${response.statusText}`);
       }
 
       const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
 
-      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = getFilename(documento, sourceUrl);
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(downloadUrl);
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.localPath.split('/').pop() || `${doc.title}.pdf`;
-      document.body.appendChild(a);
-
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      setDownloadStatus({ ...downloadStatus, [index]: 'success' });
-
-      setTimeout(() => {
-        setDownloadStatus(prev => {
-          const newStatus = { ...prev };
-          delete newStatus[index];
-          return newStatus;
-        });
-      }, 3000);
-
+      setDownloadStatus((prevState) => ({ ...prevState, [documentoId]: 'success' }));
     } catch (error) {
-      console.error(`Error downloading ${doc.title}:`, error);
-      setDownloadStatus({ ...downloadStatus, [index]: 'error' });
+      console.error(`Erro ao baixar ${documento.title}:`, error);
+      setDownloadStatus((prevState) => ({ ...prevState, [documentoId]: 'error' }));
 
-      if (confirm(`Não foi possível baixar o arquivo local. Deseja abrir o documento online?`)) {
-        window.open(doc.url, '_blank');
+      if (
+        documento.onlineUrl &&
+        window.confirm(
+          'Não foi possível baixar o arquivo. Deseja abrir o documento online?'
+        )
+      ) {
+        window.open(documento.onlineUrl, '_blank', 'noopener,noreferrer');
       }
-
-      setTimeout(() => {
-        setDownloadStatus(prev => {
-          const newStatus = { ...prev };
-          delete newStatus[index];
-          return newStatus;
-        });
-      }, 3000);
+    } finally {
+      clearDownloadStatus(documentoId);
     }
   };
 
-  const getButtonText = (index: number) => {
-    switch (downloadStatus[index]) {
+  const getButtonText = (documentoId: number) => {
+    const status = downloadStatus[documentoId];
+
+    switch (status) {
       case 'downloading':
         return 'Baixando...';
       case 'success':
@@ -92,11 +158,11 @@ const DocumentosNorteadoresContent: React.FC = () => {
       <div className="legaldoc-container">
         <Header>
           <Header.Left>
-            <Header.BackButton onClick={() => navigate("/")} />
+            <Header.BackButton onClick={() => navigate('/')} />
           </Header.Left>
 
           <Header.Center>
-            <Header.Title>Documentos Norteadore</Header.Title>
+            <Header.Title>Documentos Norteadores</Header.Title>
           </Header.Center>
 
           <Header.Right>
@@ -106,66 +172,122 @@ const DocumentosNorteadoresContent: React.FC = () => {
 
         <main className="legaldoc-main-content">
           <div className="legaldoc-hero-section">
-            <h1 className="legaldoc-hero-title">Biblioteca de <span className="legaldoc-highlight">Documentos Legais</span></h1>
+            <h1 className="legaldoc-hero-title">
+              Biblioteca de <span className="legaldoc-highlight">Documentos Legais</span>
+            </h1>
             <p className="legaldoc-hero-description">
-              Acesse documentos importantes com foco em artigos específicos relevantes para profissionais da saúde e educação.
+              Acesse documentos importantes com foco em artigos específicos relevantes
+              para profissionais da saúde e educação.
             </p>
           </div>
 
-          <div className="legaldoc-document-grid">
-            {(legalDocuments as LegalDocument[]).map((doc, index) => (
-              <div className="legaldoc-document-card" key={index}>
-                <div className="legaldoc-document-icon">
-                  <img src={doc.image} style={{ width: '100%' }} />
-                  {/* <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#FBC02D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M14 2V8H20" stroke="#FBC02D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M16 13H8" stroke="#FBC02D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M16 17H8" stroke="#FBC02D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M10 9H9H8" stroke="#FBC02D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg> */}
-                </div>
-                <div className="legaldoc-document-content">
-                  <h3 className="legaldoc-document-title">{doc.title}</h3>
-                  <p className="legaldoc-document-description">{doc.description}</p>
+          {isLoading && (
+            <div className="legaldoc-loading" role="status" aria-live="polite">
+              <span className="legaldoc-loading-spinner" aria-hidden="true" />
+              <p className="legaldoc-feedback">Carregando documentos da profissão...</p>
+            </div>
+          )}
 
-                  <div className="legaldoc-focus-points">
-                    <h4 className="legaldoc-focus-points-title">Pontos de Foco:</h4>
-                    <ul className="legaldoc-focus-points-list">
-                      {doc.focusPoints.map((point, idx) => (
-                        <li className="legaldoc-focus-point-item" key={idx}>
-                          {point.title}
-                          {point.page && <span className="legaldoc-page-number"> (Página {point.page})</span>}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+          {errorMessage && (
+            <p className="legaldoc-feedback legaldoc-feedback-error">{errorMessage}</p>
+          )}
 
-                  <div className="legaldoc-document-actions">
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="legaldoc-cta-button legaldoc-cta-primary"
-                    >
-                      Visualizar Online
-                    </a>
-                    <button
-                      onClick={() => handleDownload(doc, index)}
-                      className={`legaldoc-cta-button legaldoc-cta-outline ${downloadStatus[index] ? `legaldoc-status-${downloadStatus[index]}` : ''}`}
-                      disabled={downloadStatus[index] === 'downloading'}
-                    >
-                      {getButtonText(index)}
-                    </button>
+          {!isLoading && !errorMessage && documentos.length === 0 && (
+            <p className="legaldoc-feedback">
+              Nenhum documento foi encontrado para a profissão selecionada.
+            </p>
+          )}
+
+          {!isLoading && !errorMessage && documentos.length > 0 && (
+            <div className="legaldoc-document-grid">
+              {documentos.map((documento) => {
+                const hasDownloadSource = Boolean(
+                  documento.fileUrl ?? documento.onlineUrl
+                );
+
+                return (
+                  <div className="legaldoc-document-card" key={documento.id}>
+                    <div className="legaldoc-document-icon">
+                      {documento.coverImageUrl ? (
+                        <img src={documento.coverImageUrl} alt={documento.title} />
+                      ) : (
+                        <div className="legaldoc-document-placeholder">Sem capa</div>
+                      )}
+                    </div>
+                    <div className="legaldoc-document-content">
+                      <h3 className="legaldoc-document-title">{documento.title}</h3>
+                      <p className="legaldoc-document-description">
+                        {documento.description || 'Sem descrição disponível.'}
+                      </p>
+
+                      {documento.focusPoints.length > 0 && (
+                        <div className="legaldoc-focus-points">
+                          <h4 className="legaldoc-focus-points-title">Pontos de Foco:</h4>
+                          <ul className="legaldoc-focus-points-list">
+                            {documento.focusPoints.map((point, index) => (
+                              <li className="legaldoc-focus-point-item" key={index}>
+                                {point.title}
+                                {point.page && (
+                                  <span className="legaldoc-page-number">
+                                    {' '}
+                                    (Página {point.page})
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="legaldoc-document-actions">
+                        {documento.onlineUrl ? (
+                          <a
+                            href={documento.onlineUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="legaldoc-cta-button legaldoc-cta-primary"
+                          >
+                            Visualizar Online
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            className="legaldoc-cta-button legaldoc-cta-primary"
+                            disabled
+                          >
+                            Sem Link Online
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(documento)}
+                          className={`legaldoc-cta-button legaldoc-cta-outline ${
+                            downloadStatus[documento.id]
+                              ? `legaldoc-status-${downloadStatus[documento.id]}`
+                              : ''
+                          }`}
+                          disabled={
+                            downloadStatus[documento.id] === 'downloading' ||
+                            !hasDownloadSource
+                          }
+                        >
+                          {hasDownloadSource
+                            ? getButtonText(documento.id)
+                            : 'Arquivo Indisponível'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </main>
-
       </div>
-      <Footer pageTitle='Biblioteca Legal' pageDescription='Acesso a documentos legais importantes para Cirurgiões-Dentistas.' />
+      <Footer
+        pageTitle="Biblioteca Legal"
+        pageDescription="Acesso a documentos legais importantes para profissionais cadastrados."
+      />
     </>
   );
 };

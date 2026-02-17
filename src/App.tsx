@@ -17,6 +17,7 @@ function App() {
           <Route path="/denuncia" element={<Pages.DenunciaPage />} />
           <Route path="/confirmacao-denuncia" element={<Pages.ConfirmacaoDenuncia />} />
           <Route path="/documentos-norteadores" element={<Pages.DocumentosNorteadoresPage />} />
+          <Route path="/documentos-norteadores/:profissaoId" element={<Pages.DocumentosNorteadoresPage />} />
         </Routes>
       </Router>
     </SidebarProvider>

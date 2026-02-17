@@ -46,7 +46,7 @@ export const InicioV3Content = () => {
             <button className="cta-button" onClick={openModal}>
               Realizar Denúncia
             </button>
-            <button className="cta-button outline" onClick={() => navigation('/documentos-norteadores')}>
+            <button className="cta-button outline" onClick={() => navigation('/documentos-norteadores/1')}>
               Documentos Norteadores
             </button>
           </div>

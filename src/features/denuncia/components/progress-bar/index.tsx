@@ -5,6 +5,7 @@ import { Step, StepIndicator } from './components/step-indicator';
 interface ProgressBarProps {
   currentStep: number;
   onTap: (step: number) => void;
+  steps: Step[];
   stepsValidation: Record<number, boolean>;
   error: { hasError: boolean; step: number; };
   setError: Dispatch<SetStateAction<{ hasError: boolean; step: number; }>>
@@ -13,20 +14,11 @@ interface ProgressBarProps {
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   currentStep,
   onTap,
+  steps,
   stepsValidation,
   error,
   setError,
 }) => {
-  const steps: Step[] = [
-    { number: 1, label: "Endereço" },
-    { number: 2, label: "Dados" },
-    { number: 3, label: "Lesões Visíveis" },
-    { number: 4, label: "Negligência" },
-    { number: 5, label: "Violência Psicológica" },
-    { number: 6, label: "Adicionais" },
-    { number: 7, label: "Resumo" }
-  ];
-
   const isStepClickable = (stepNumber: number) => {
     if (stepNumber <= currentStep) return true;
 
@@ -52,6 +44,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
             currentStep={currentStep}
             label={step.label}
             isActive={currentStep >= step.number}
+            isCurrent={currentStep === step.number}
             onTap={onTap}
             isClickable={isStepClickable(step.number)}
             error={step.number === error.step && error.hasError}

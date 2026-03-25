@@ -10,13 +10,24 @@ interface StepIndicatorProps {
   label: string;
   currentStep: number;
   isActive: boolean;
+  isCurrent: boolean;
   onTap: (stepNumber: number) => void;
   isClickable: boolean;
   error: boolean;
   setError: Dispatch<SetStateAction<{ hasError: boolean; step: number; }>>
 }
 
-export const StepIndicator: React.FC<StepIndicatorProps> = ({ stepNumber, label, currentStep, isActive, onTap, isClickable, error, setError }: StepIndicatorProps) => {
+export const StepIndicator: React.FC<StepIndicatorProps> = ({
+  stepNumber,
+  label,
+  currentStep,
+  isActive,
+  isCurrent,
+  onTap,
+  isClickable,
+  error,
+  setError
+}: StepIndicatorProps) => {
   return (
     <div
       className={`step-indicator-wrapper ${!isClickable ? 'disabled' : ''}`}
@@ -36,10 +47,10 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({ stepNumber, label,
         });
       }}
     >
-      <div className={`step-indicator ${isActive ? 'active' : ''} ${error && 'error'}`}>
+      <div className={`step-indicator ${isCurrent ? 'active' : ''} ${isActive && !isCurrent ? 'completed' : ''} ${error && 'error'}`}>
         {stepNumber}
       </div>
-      <div className={`step-label ${error && 'error'}`}>{label}</div>
+      <div className={`step-label ${isCurrent ? 'visible' : ''} ${error && 'error'}`}>{label}</div>
     </div>
   );
 };

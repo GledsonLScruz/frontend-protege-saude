@@ -1,0 +1,118 @@
+.profession-selection-step {
+  display: flex;
+  justify-content: center;
+}
+
+.profession-selection-card {
+  width: 100%;
+  max-width: 640px;
+  padding: 2rem;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffaf0 0%, #ffffff 100%);
+  border: 1px solid #f4e1b5;
+  box-shadow: 0 20px 40px rgba(28, 28, 28, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profession-selection-kicker {
+  width: fit-content;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #f4b63c;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.profession-selection-card h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  line-height: 1.15;
+  color: #2f2f2f;
+}
+
+.profession-selection-card p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.profession-selection-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profession-selection-preview {
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(244, 182, 60, 0.1);
+  border: 1px solid rgba(244, 182, 60, 0.25);
+}
+
+.profession-selection-preview h3 {
+  margin: 0 0 0.35rem;
+  color: #704800;
+}
+
+.profession-selection-feedback {
+  padding: 0.95rem 1rem;
+  border-radius: 12px;
+  background: #f8f8f8;
+  color: #555;
+}
+
+.profession-selection-feedback-error {
+  background: #fff5f5;
+  color: #b42318;
+  border: 1px solid #ffd6d6;
+}
+
+.profession-selection-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: none;
+  border-radius: 14px;
+  background: #f4b63c;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.profession-selection-action:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.profession-selection-spinner {
+  animation: profession-selection-spin 1s linear infinite;
+}
+
+@keyframes profession-selection-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .profession-selection-card {
+    padding: 1.5rem;
+  }
+
+  .profession-selection-card h2 {
+    font-size: 1.5rem;
+  }
+}

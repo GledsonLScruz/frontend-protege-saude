@@ -3,9 +3,11 @@ import './documentos-norteadores-content.css';
 import { Header } from '../../../shared/components/header/components';
 import { useNavigate } from 'react-router-dom';
 import { Footer } from '../../../shared/components/footer';
+import { CustomSelect, CustomSelectOption } from '../../../shared/components/select';
 import {
   DocumentoNorteador,
   DocumentosNorteadoresService,
+  Profissao,
 } from '../documentos-norteadores-service';
 
 type DownloadStatus = 'downloading' | 'success' | 'error';
@@ -13,7 +15,7 @@ type DownloadStatus = 'downloading' | 'success' | 'error';
 const documentosNorteadoresService = new DocumentosNorteadoresService();
 
 interface DocumentosNorteadoresContentProps {
-  profissaoId: number;
+  initialProfissaoId?: string;
 }
 
 const getFilename = (documento: DocumentoNorteador, url: string): string => {
@@ -31,13 +33,17 @@ const getFilename = (documento: DocumentoNorteador, url: string): string => {
 };
 
 const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> = ({
-  profissaoId,
+  initialProfissaoId,
 }) => {
   const navigate = useNavigate();
 
+  const [profissoes, setProfissoes] = React.useState<Profissao[]>([]);
+  const [isLoadingProfissoes, setIsLoadingProfissoes] = React.useState(true);
+  const [profissoesError, setProfissoesError] = React.useState<string | null>(null);
+  const [selectedProfissaoId, setSelectedProfissaoId] = React.useState('');
   const [documentos, setDocumentos] = React.useState<DocumentoNorteador[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [isLoadingDocumentos, setIsLoadingDocumentos] = React.useState(false);
+  const [documentosError, setDocumentosError] = React.useState<string | null>(null);
   const [downloadStatus, setDownloadStatus] = React.useState<
     Record<number, DownloadStatus>
   >({});
@@ -45,12 +51,76 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
   React.useEffect(() => {
     let isActive = true;
 
-    const loadDocumentos = async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
+    const loadProfissoes = async () => {
+      setIsLoadingProfissoes(true);
+      setProfissoesError(null);
 
       try {
-        const response = await documentosNorteadoresService.listByProfissao(profissaoId);
+        const response = await documentosNorteadoresService.listProfissoes();
+        if (!isActive) {
+          return;
+        }
+
+        setProfissoes(response);
+
+        const normalizedInitialProfissaoId = initialProfissaoId?.trim();
+        const initialSelection =
+          normalizedInitialProfissaoId &&
+          response.some(
+            (profissao) => String(profissao.id) === normalizedInitialProfissaoId
+          )
+            ? normalizedInitialProfissaoId
+            : '';
+
+        setSelectedProfissaoId(initialSelection);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        console.error('Erro ao carregar profissões:', error);
+        setProfissoes([]);
+        setSelectedProfissaoId('');
+        setProfissoesError(
+          'Não foi possível carregar a lista de profissões no momento.'
+        );
+      } finally {
+        if (isActive) {
+          setIsLoadingProfissoes(false);
+        }
+      }
+    };
+
+    void loadProfissoes();
+
+    return () => {
+      isActive = false;
+    };
+  }, [initialProfissaoId]);
+
+  React.useEffect(() => {
+    let isActive = true;
+
+    if (!selectedProfissaoId) {
+      setDocumentos([]);
+      setDocumentosError(null);
+      setIsLoadingDocumentos(false);
+
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const loadDocumentos = async () => {
+      setIsLoadingDocumentos(true);
+      setDocumentosError(null);
+      setDocumentos([]);
+
+      try {
+        const response = await documentosNorteadoresService.listByProfissao(
+          Number(selectedProfissaoId)
+        );
+
         if (!isActive) {
           return;
         }
@@ -63,12 +133,12 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
 
         console.error('Erro ao carregar documentos norteadores:', error);
         setDocumentos([]);
-        setErrorMessage(
+        setDocumentosError(
           'Não foi possível carregar os documentos desta profissão no momento.'
         );
       } finally {
         if (isActive) {
-          setIsLoading(false);
+          setIsLoadingDocumentos(false);
         }
       }
     };
@@ -78,7 +148,23 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
     return () => {
       isActive = false;
     };
-  }, [profissaoId]);
+  }, [selectedProfissaoId]);
+
+  const profissaoOptions = React.useMemo<CustomSelectOption[]>(
+    () =>
+      profissoes.map((profissao) => ({
+        label: profissao.nome,
+        value: String(profissao.id),
+      })),
+    [profissoes]
+  );
+
+  const selectedProfissao = React.useMemo(
+    () =>
+      profissoes.find((profissao) => String(profissao.id) === selectedProfissaoId) ??
+      null,
+    [profissoes, selectedProfissaoId]
+  );
 
   const clearDownloadStatus = (documentoId: number) => {
     setTimeout(() => {
@@ -181,29 +267,76 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
             </p>
           </div>
 
-          {isLoading && (
+          {!profissoesError && (
+            <section className="legaldoc-filter-section" aria-label="Filtro por profissão">
+              <CustomSelect
+                label="Profissão"
+                value={selectedProfissaoId}
+                onChange={setSelectedProfissaoId}
+                options={profissaoOptions}
+                placeholder="Selecione sua profissão"
+                searchPlaceholder="Buscar profissão..."
+              />
+              {selectedProfissao?.descricao && (
+                <p className="legaldoc-selected-description">
+                  {selectedProfissao.descricao}
+                </p>
+              )}
+            </section>
+          )}
+
+          {isLoadingProfissoes && (
             <div className="legaldoc-loading" role="status" aria-live="polite">
               <span className="legaldoc-loading-spinner" aria-hidden="true" />
-              <p className="legaldoc-feedback">Carregando documentos da profissão...</p>
+              <p className="legaldoc-feedback">Carregando profissões...</p>
             </div>
           )}
 
-          {errorMessage && (
-            <p className="legaldoc-feedback legaldoc-feedback-error">{errorMessage}</p>
+          {profissoesError && (
+            <p className="legaldoc-feedback legaldoc-feedback-error">{profissoesError}</p>
           )}
 
-          {!isLoading && !errorMessage && documentos.length === 0 && (
+          {!isLoadingProfissoes && !profissoesError && !selectedProfissaoId && (
             <p className="legaldoc-feedback">
-              Nenhum documento foi encontrado para a profissão selecionada.
+              Selecione sua profissão para visualizar os documentos norteadores.
             </p>
           )}
 
-          {!isLoading && !errorMessage && documentos.length > 0 && (
+          {!isLoadingProfissoes &&
+            !profissoesError &&
+            selectedProfissaoId &&
+            isLoadingDocumentos && (
+              <div className="legaldoc-loading" role="status" aria-live="polite">
+                <span className="legaldoc-loading-spinner" aria-hidden="true" />
+                <p className="legaldoc-feedback">Carregando documentos da profissão...</p>
+              </div>
+            )}
+
+          {documentosError && (
+            <p className="legaldoc-feedback legaldoc-feedback-error">{documentosError}</p>
+          )}
+
+          {!isLoadingProfissoes &&
+            !profissoesError &&
+            selectedProfissaoId &&
+            !isLoadingDocumentos &&
+            !documentosError &&
+            documentos.length === 0 && (
+              <p className="legaldoc-feedback">
+                Nenhum documento foi encontrado para a profissão selecionada.
+              </p>
+            )}
+
+          {!isLoadingProfissoes &&
+            !profissoesError &&
+            selectedProfissaoId &&
+            !isLoadingDocumentos &&
+            !documentosError &&
+            documentos.length > 0 && (
             <div className="legaldoc-document-grid">
               {documentos.map((documento) => {
-                const hasDownloadSource = Boolean(
-                  documento.fileUrl ?? documento.onlineUrl
-                );
+                const hasOnlineUrl = Boolean(documento.onlineUrl);
+                const hasDownloadSource = Boolean(documento.fileUrl);
 
                 return (
                   <div className="legaldoc-document-card" key={documento.id}>
@@ -239,43 +372,35 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
                         </div>
                       )}
 
-                      <div className="legaldoc-document-actions">
-                        {documento.onlineUrl ? (
-                          <a
-                            href={documento.onlineUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="legaldoc-cta-button legaldoc-cta-primary"
-                          >
-                            Visualizar Online
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            className="legaldoc-cta-button legaldoc-cta-primary"
-                            disabled
-                          >
-                            Sem Link Online
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDownload(documento)}
-                          className={`legaldoc-cta-button legaldoc-cta-outline ${
-                            downloadStatus[documento.id]
-                              ? `legaldoc-status-${downloadStatus[documento.id]}`
-                              : ''
-                          }`}
-                          disabled={
-                            downloadStatus[documento.id] === 'downloading' ||
-                            !hasDownloadSource
-                          }
-                        >
-                          {hasDownloadSource
-                            ? getButtonText(documento.id)
-                            : 'Arquivo Indisponível'}
-                        </button>
-                      </div>
+                      {(hasOnlineUrl || hasDownloadSource) && (
+                        <div className="legaldoc-document-actions">
+                          {hasOnlineUrl && (
+                            <a
+                              href={documento.onlineUrl ?? undefined}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="legaldoc-cta-button legaldoc-cta-primary"
+                            >
+                              Visualizar Online
+                            </a>
+                          )}
+
+                          {hasDownloadSource && (
+                            <button
+                              type="button"
+                              onClick={() => handleDownload(documento)}
+                              className={`legaldoc-cta-button legaldoc-cta-outline ${
+                                downloadStatus[documento.id]
+                                  ? `legaldoc-status-${downloadStatus[documento.id]}`
+                                  : ''
+                              }`}
+                              disabled={downloadStatus[documento.id] === 'downloading'}
+                            >
+                              {getButtonText(documento.id)}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

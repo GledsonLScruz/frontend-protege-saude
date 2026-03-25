@@ -32,6 +32,12 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
+.summary-section-description {
+  margin: 0 0 1rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
 .summary-section strong {
   font-weight: 500;
   color: #4b5563;
@@ -43,120 +49,9 @@
   gap: 0.5rem;
 }
 
-.location-details {
-  margin-top: 0.5rem;
-}
-
-.location-title {
-  font-weight: 500;
-  color: #4b5563;
-  margin-bottom: 0.25rem;
-}
-
-.location-item {
-  margin-left: 0.5rem;
-  color: #6b7280;
-}
-
-.additional-info-item {
-  margin-bottom: 1rem;
-}
-
-.info-title {
-  font-weight: 500;
-  color: #4b5563;
-  margin-bottom: 0.25rem;
-}
-
-.info-content {
-  color: #616161;
-  white-space: pre-wrap;
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.button-primary {
-  background-color: #F4B63C;
-  color: white;
-  border: none;
-}
-
-.button-primary:hover {
-  background-color: #F4B63C;
-}
-
-.button-secondary {
-  background-color: white;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
-}
-
-.button-secondary:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-}
-
 @media (max-width: 640px) {
 
   .complaint-summary h2 {
     font-size: 1.5rem;
   }
-
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .button {
-    width: 100%;
-  }
-}
-
-.download-pdf-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 4px;
-  margin-top: 16px;
-}
-
-.download-pdf-button:hover {
-  background-color: #45a049;
-}
-
-.additional-info-item.empty {
-  padding: 1rem;
-  background-color: #f9fafb;
-  border-radius: 8px;
-}
-
-.no-info {
-  color: #6b7280;
-  font-style: italic;
-  text-align: center;
-}
-
-.info-content {
-  color: #757575;
-}
-
-.info-title {
-  font-weight: 500;
-  color: #757575;
 }

@@ -1,10 +1,10 @@
 import './style.css'
-import { Complaint } from '../types/denuncia';
+import { ComplaintDraft } from '../types/denuncia';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import React from 'react';
 
 interface LocationState {
-  complaint: Complaint;
+  complaint: ComplaintDraft;
   protocol: string;
   pdf: Blob;
 }

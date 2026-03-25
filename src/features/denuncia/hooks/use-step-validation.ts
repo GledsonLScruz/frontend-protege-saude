@@ -1,34 +1,53 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export type StepValidation = {
-  [key: number]: boolean;
-};
+export type StepValidation = Record<number, boolean>;
 
-const initialStepsValidation: StepValidation = {
-  1: false,
-  2: false,
-  3: true,
-  4: true,
-  5: true,
-  6: true,
-  7: true,
-};
+const buildInitialStepsValidation = (totalSteps: number): StepValidation =>
+  Array.from({ length: totalSteps }, (_, index) => index + 1).reduce<StepValidation>(
+    (accumulator, step) => {
+      accumulator[step] = false;
+      return accumulator;
+    },
+    {}
+  );
 
-export const useStepsValidation = () => {
-  const [stepsValidation, setStepsValidation] = useState<StepValidation>(initialStepsValidation);
+export const useStepsValidation = (totalSteps: number) => {
+  const [stepsValidation, setStepsValidation] = useState<StepValidation>(
+    buildInitialStepsValidation(totalSteps)
+  );
+
+  useEffect(() => {
+    setStepsValidation((prev) => {
+      const next = buildInitialStepsValidation(totalSteps);
+
+      Object.entries(prev).forEach(([step, value]) => {
+        const numericStep = Number(step);
+        if (numericStep <= totalSteps) {
+          next[numericStep] = value;
+        }
+      });
+
+      return next;
+    });
+  }, [totalSteps]);
 
   const updateStepValidation = (step: number, isValid: boolean) => {
-    setStepsValidation(prev => ({
+    setStepsValidation((prev) => ({
       ...prev,
-      [step]: isValid
+      [step]: isValid,
     }));
   };
 
-  const isStepValid = (step: number) => stepsValidation[step];
+  const resetStepsValidation = () => {
+    setStepsValidation(buildInitialStepsValidation(totalSteps));
+  };
+
+  const isStepValid = (step: number) => Boolean(stepsValidation[step]);
 
   return {
     stepsValidation,
     updateStepValidation,
+    resetStepsValidation,
     isStepValid,
   };
 };

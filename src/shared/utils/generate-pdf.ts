@@ -1,26 +1,19 @@
 import jsPDF from "jspdf";
-import { Complaint, InjuryLocation } from "../../features/denuncia/types/denuncia";
+import { ComplaintDraft } from "../../features/denuncia/types/denuncia";
+import { buildComplaintSummarySections } from "../../features/denuncia/utils/complaint-summary";
 import { UserOptions } from "jspdf-autotable";
 
-const LOCATION_TRANSLATIONS: Record<string, string> = {
-  "Cabeça": 'Cabeça',
-  Face: 'Face',
-  "Pescoço": 'Pescoço',
-  "Outro": 'Outro'
-};
-
-export const generatePDF = (complaint: Complaint) => {
+export const generatePDF = (complaint: ComplaintDraft) => {
   const doc = new jsPDF();
   doc.setFont("helvetica");
+  const sections = buildComplaintSummarySections(complaint);
 
-  // Cabeçalho
   doc.setFontSize(20);
   doc.text(`Relatório de Denúncia`, 105, 20, { align: "center" });
   doc.setFontSize(16);
-  doc.text(`${complaint.address.councilRegion?.nome}`, 105, 30, { align: "center"});
+  doc.text(`${complaint.address.councilRegion?.nome ?? 'Conselho Tutelar não identificado'}`, 105, 30, { align: "center"});
   doc.setFontSize(12);
 
-  // Função auxiliar para criar seções
   const addSection = (title: string, startY: number): number => {
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
@@ -30,108 +23,48 @@ export const generatePDF = (complaint: Complaint) => {
     return startY + 10;
   };
 
-  const translateLocations = (locations?: InjuryLocation): string => {
-    if (!locations || Object.keys(locations).length === 0) {
-      return 'Não se aplica';
+  let yPos = 45;
+
+  sections.forEach((section, index) => {
+    yPos = addSection(`${index + 1}. ${section.title}`, yPos);
+
+    if (section.description) {
+      const descriptionLines = doc.splitTextToSize(section.description, 170);
+      doc.text(descriptionLines, 20, yPos);
+      yPos += descriptionLines.length * 6 + 4;
     }
 
-    const selectedLocations = Object.entries(locations)
-      .filter(([, value]) => value)
-      .map(([key]) => LOCATION_TRANSLATIONS[key] || key);
+    (doc as unknown as { autoTable: (options: UserOptions) => void }).autoTable({
+      startY: yPos,
+      head: [['Pergunta', 'Resposta']],
+      body: section.items.map((item) => [item.label, item.value]),
+      theme: 'striped',
+      headStyles: {
+        fillColor: [251, 192, 45],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      bodyStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [66, 66, 66],
+        fontSize: 10,
+        valign: 'top',
+      },
+      columnStyles: {
+        0: { cellWidth: 68 },
+        1: { cellWidth: 'auto' }
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+        textColor: [66, 66, 66],
+        fontSize: 10,
+      },
+      margin: { left: 20, right: 20 },
+    });
 
-    return selectedLocations.length > 0 ? selectedLocations.join(', ') : 'Não se aplica';
-  };
-
-  
-  // Dados do Local
-  let yPos = addSection("1. Dados do Local", 45);
-  if (complaint.address.hasNoInformation) {
-    doc.text(`Bairro aproximado: ${complaint.address.neighborhood || "Não informado"}`, 20, yPos);
-  } else {
-    doc.text([
-      `CEP: ${complaint.address.cep || "Não informado"}`,
-      `Rua: ${complaint.address.street || "Não informado"}`,
-      `Número: ${complaint.address.number || "Não informado"}`,
-      `Bairro: ${complaint.address.neighborhood || "Não informado"}`
-    ], 20, yPos);
-  }
-
-  // Dados da Vítima
-  yPos = addSection("2. Dados da Vítima", yPos + 25);
-  doc.text([
-    `Nome: ${complaint.victimData.name}`,
-    `Data de Nascimento: ${complaint.victimData.birthDate}`,
-    `Sexo: ${complaint.victimData.gender === 'male' ? 'Masculino' :
-      complaint.victimData.gender === 'female' ? 'Feminino' : 'Outro'}`
-  ], 20, yPos);
-
-  // Detalhes do Caso - Tabela
-  yPos = addSection("3. Detalhes do Caso", yPos + 25);
-
-  // Preparar dados da tabela
-  const tableData = [
-    // Lesões Gerais
-    ['Sinais de Violência Física', complaint.caseDetails.hasAggressionSigns ? 'Sim' : '-', 'Não se aplica'],
-    ['Lesão no Olho', complaint.caseDetails.hasEyeInjury ? 'Sim' : '-', 'Não se aplica'],
-
-    // Lesões com Localização
-    ['Hematoma', complaint.caseDetails.hasBruises ? 'Sim' : '-',
-      complaint.caseDetails.hasBruises && translateLocations(complaint.caseDetails.bruisesLocation)],
-
-    ['Abrasão', complaint.caseDetails.hasAbrasion ? 'Sim' : '-', translateLocations(complaint.caseDetails.abrasionLocation)],
-
-    ['Laceração', complaint.caseDetails.hasLaceration ? 'Sim' : '-', translateLocations(complaint.caseDetails.lacerationLocation)],
-
-    ['Queimadura', complaint.caseDetails.hasBurns ? 'Sim' : '-', translateLocations(complaint.caseDetails.burnsLocation)],
-
-    ['Marca de Mordida', complaint.caseDetails.hasBiteMarks ? 'Sim' : '-', translateLocations(complaint.caseDetails.biteMarksLocation)],
-
-    ['Sinais de Negligência Familiar', complaint.caseDetails.neglectSigns ? 'Sim' : '-', 'Não se aplica'],
-
-    ['Sinais de Violência Psicológica', complaint.caseDetails.psychologicalViolenceSigns ? 'Sim' : '-', 'Não se aplica'],
-  ];
-
-  // Gerar tabela
-  (doc as unknown as { autoTable: (options: UserOptions) => void }).autoTable({
-    startY: yPos,
-    head: [['Lesão', 'Presente', 'Localização']],
-    body: tableData,
-    theme: 'striped',
-    headStyles: {
-      fillColor: [251, 192, 45], // Cor de fundo do cabeçalho definida como #FBC02D
-      textColor: [255, 255, 255], // Cor do texto do cabeçalho definida como #424242
-      fontStyle: 'bold'
-    },
-    bodyStyles: {
-      fillColor: [255, 255, 255], // Cor de fundo das células do corpo da tabela definida como #FFFFFF
-      textColor: [66, 66, 66], // Cor do texto das células do corpo da tabela definida como #424242
-      fontSize: 10, // Tamanho da fonte do corpo da tabela
-    },
-    columnStyles: {
-      0: { cellWidth: 'auto' },
-      1: { cellWidth: 30, halign: 'center' },
-      2: { cellWidth: 'auto' }
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-      textColor: [66, 66, 66], // Cor do texto das linhas alternadas definida como #424242
-      fontSize: 10, // Tamanho da fonte das linhas alternadas
-    },
-    margin: { left: 20, right: 20 },
+    yPos = doc.lastAutoTable.finalY + 16;
   });
 
-  // Informações Adicionais
-  yPos = doc.lastAutoTable.finalY + 20;
-  yPos = addSection("4. Informações Adicionais", yPos);
-
-  if (complaint.additionalInfo.extraInformation) {
-    const splitText = doc.splitTextToSize(complaint.additionalInfo.extraInformation, 170);
-    doc.text(splitText, 20, yPos);
-  } else {
-    doc.text("Nenhuma informação adicional fornecida.", 20, yPos);
-  }
-
-  // Adicionar número das páginas
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -145,7 +78,5 @@ export const generatePDF = (complaint: Complaint) => {
     );
   }
 
-  // Salvar o PDF
-  // doc.save(`denuncia_${protocol}.pdf`);
   return doc.output('blob');
 };

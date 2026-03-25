@@ -1,19 +1,16 @@
-import { DenunciaService } from "./denuncia-service";
-import { Complaint } from "./types/denuncia";
+import { DenunciaService } from './denuncia-service';
+import {
+  ComplaintDraft,
+  CouncilRegion,
+  PublicForm,
+  PublicProfession,
+} from './types/denuncia';
 
 export type DenunciaState = {
   status: 'idle' | 'loading' | 'success' | 'error';
   message?: string;
   protocol?: string;
 };
-
-interface CouncilRegion {
-  setor: string;
-  nome: string;
-  regiao: "norte" | "sul" | "leste" | "oeste";
-  contato: string[];
-  bairros: string[];
-}
 
 export class DenunciaController {
   private service: DenunciaService;
@@ -22,28 +19,42 @@ export class DenunciaController {
     this.service = new DenunciaService();
   }
 
-  async submitDenuncia(complaint: Complaint, pdf: Blob, protocol: string): Promise<DenunciaState> {
+  async listPublicProfessions(): Promise<PublicProfession[]> {
+    return this.service.listPublicProfessions();
+  }
+
+  async getPublicForm(professionId: number): Promise<PublicForm> {
+    return this.service.getPublicForm(professionId);
+  }
+
+  async getCampinaGrandeCouncils(): Promise<CouncilRegion[]> {
+    return this.service.getCampinaGrandeCouncils();
+  }
+
+  async submitDenuncia(
+    complaint: ComplaintDraft,
+    pdf: Blob,
+    protocol: string
+  ): Promise<DenunciaState> {
     try {
-      
       const response = await this.service.submitComplaint(complaint, pdf, protocol);
       return {
         status: 'success',
-        protocol: response.protocolo
+        protocol: response.protocolo,
       };
     } catch (error) {
-      console.error(error);
       return {
         status: 'error',
-        message: 'Erro ao enviar denúncia'
+        message: error instanceof Error ? error.message : 'Erro ao enviar denúncia.',
       };
     }
   }
 
-  getAllBairros = (): string[] => {
-    return this.service.getAllBairros();
-  };
+  getAllBairros = (conselhosRegionais: CouncilRegion[]): string[] =>
+    this.service.getAllBairros(conselhosRegionais);
 
-  findConselhoByBairro = (bairro: string): CouncilRegion | undefined => {
-    return this.service.findConselhoByBairro(bairro);
-  };
+  findConselhoByBairro = (
+    bairro: string,
+    conselhosRegionais: CouncilRegion[]
+  ): CouncilRegion | undefined => this.service.findConselhoByBairro(bairro, conselhosRegionais);
 }

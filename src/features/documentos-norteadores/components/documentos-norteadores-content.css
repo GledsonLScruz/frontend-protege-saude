@@ -127,9 +127,25 @@ nav {
   margin: 0 auto;
 }
 
+.legaldoc-filter-section {
+  max-width: 720px;
+  margin: 0 auto 2rem;
+  padding: 1.25rem;
+  background-color: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+}
+
+.legaldoc-selected-description {
+  margin-top: 0.75rem;
+  color: #4a5568;
+  line-height: 1.5;
+}
+
 .legaldoc-document-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 2rem;
 }
 

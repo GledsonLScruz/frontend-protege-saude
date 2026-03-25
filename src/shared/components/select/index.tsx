@@ -2,29 +2,44 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
 import './select-style.css';
 
+export interface CustomSelectOption {
+  label: string;
+  value: string;
+}
+
 interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
-  options: string[];
+  options: Array<string | CustomSelectOption>;
   placeholder?: string;
   label?: string;
   onBlur?: () => void;
   error?: boolean;
+  searchPlaceholder?: string;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
   value,
   onChange,
   options,
-  placeholder = "Selecione uma opção",
+  placeholder = 'Selecione uma opção',
   label,
   onBlur,
-  error
+  error,
+  searchPlaceholder = 'Buscar opção...',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredOptions, setFilteredOptions] = useState(options);
+  const [filteredOptions, setFilteredOptions] = useState<CustomSelectOption[]>([]);
   const selectRef = useRef<HTMLDivElement>(null);
+  const normalizedOptions = React.useMemo(
+    () =>
+      options.map((option) =>
+        typeof option === 'string' ? { label: option, value: option } : option
+      ),
+    [options]
+  );
+  const selectedOption = normalizedOptions.find((option) => option.value === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,14 +53,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   }, []);
 
   useEffect(() => {
-    const filtered = options.filter(option =>
-      option.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = normalizedOptions.filter((option) =>
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredOptions(filtered);
-  }, [searchTerm]);
+  }, [normalizedOptions, searchTerm]);
 
-  const handleSelect = (option: string) => {
-    onChange(option);
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
     setIsOpen(false);
     setSearchTerm('');
   };
@@ -59,19 +74,19 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   return (
     <div className="custom-select-container" ref={selectRef}>
       {label && <label className="custom-select-label">{label}</label>}
-      
+
       <div
         className={`custom-select-header ${isOpen ? 'open' : ''} ${error ? 'error' : ''}`}
         onClick={() => {
-          setIsOpen(!isOpen)
+          setIsOpen(!isOpen);
           onBlur?.();
         }}
       >
-        {value ? (
+        {selectedOption ? (
           <div className="selected-value">
-            {value}
-            <button 
-              className="clear-button" 
+            <span className="selected-value-label">{selectedOption.label}</span>
+            <button
+              className="clear-button"
               onClick={clearSelection}
               aria-label="Limpar seleção"
             >
@@ -92,7 +107,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar bairro..."
+              placeholder={searchPlaceholder}
               className="search-input"
               autoFocus
             />
@@ -102,11 +117,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <div
-                  key={option}
-                  className={`option ${value === option ? 'selected' : ''}`}
-                  onClick={() => handleSelect(option)}
+                  key={option.value}
+                  className={`option ${value === option.value ? 'selected' : ''}`}
+                  onClick={() => handleSelect(option.value)}
                 >
-                  {option}
+                  {option.label}
                 </div>
               ))
             ) : (

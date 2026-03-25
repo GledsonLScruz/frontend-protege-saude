@@ -1,10 +1,10 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import DocumentosNorteadoresContent from './components/documentos-norteadores-content';
 import React from 'react';
 
 export const DocumentosNorteadoresPage = () => {
   const location = useLocation();
-  const profissaoId = 1;
+  const { profissaoId } = useParams<{ profissaoId?: string }>();
 
   React.useEffect(() => {
     window.scrollTo({
@@ -13,5 +13,5 @@ export const DocumentosNorteadoresPage = () => {
     });
   }, [location]);
 
-  return <DocumentosNorteadoresContent profissaoId={profissaoId} />;
+  return <DocumentosNorteadoresContent initialProfissaoId={profissaoId} />;
 };

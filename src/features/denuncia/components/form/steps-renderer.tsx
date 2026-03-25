@@ -1,55 +1,74 @@
 import React from 'react';
-import { Complaint } from '../../types/denuncia';
+import {
+  ComplaintDraft,
+  ComplaintStepDefinition,
+  CouncilRegion,
+  DynamicAnswerValue,
+} from '../../types/denuncia';
 import { AddressStep } from '../form/address/address-step';
-import { VictimDataStep } from '../form/dados-vitima/dados-vitima-step';
-import { VisibleInjuriesStep } from '../form/detalhes-caso-step/lesoes-visiveis';
-import { NegligenciaPsicologicaStep } from './detalhes-caso-step/negligencia/negligencia-page';
-import { ViolenciaPsicologicaStep } from './detalhes-caso-step/violencia-psicologica/violencia-psicologica-page';
-import { ExtraInfoStep } from '../form/informacoes-adicionais-step/informacoes-adicionais';
 import { ComplaintSummary } from '../form/resumo-denuncia/resumo-denuncia';
+import { DynamicFormStep } from './dynamic-form-step';
 
 interface StepsRendererProps {
   currentStep: number;
-  complaint: Complaint;
-  onComplaintUpdate: (field: keyof Complaint, value: unknown) => void;
+  steps: ComplaintStepDefinition[];
+  complaint: ComplaintDraft;
+  neighborhoods: string[];
+  findConselhoByBairro: (bairro: string) => CouncilRegion | undefined;
+  onAddressUpdate: (address: ComplaintDraft['address']) => void;
+  onDynamicAnswerUpdate: (
+    stepId: number,
+    fieldId: number,
+    value: DynamicAnswerValue
+  ) => void;
   onValidationChange: (isValid: boolean) => void;
 }
 
 export const StepsRenderer: React.FC<StepsRendererProps> = ({
   currentStep,
+  steps,
   complaint,
-  onComplaintUpdate,
+  neighborhoods,
+  findConselhoByBairro,
+  onAddressUpdate,
+  onDynamicAnswerUpdate,
   onValidationChange
 }) => {
-  const steps = {
-    1: <AddressStep
-      address={complaint.address}
-      onChange={(address) => onComplaintUpdate('address', address)}
-      onValidationChange={onValidationChange}
-    />,
-    2: <VictimDataStep
-      victimData={complaint.victimData}
-      onChange={(victimData) => onComplaintUpdate('victimData', victimData)}
-      onValidationChange={onValidationChange}
-    />,
-    3: <VisibleInjuriesStep
-      caseDetails={complaint.caseDetails}
-      onChange={(caseDetails) => onComplaintUpdate('caseDetails', caseDetails)}
-    />,
-    4: <NegligenciaPsicologicaStep
-      caseDetails={complaint.caseDetails}
-      onChange={(caseDetails) => onComplaintUpdate('caseDetails', caseDetails)}
-    />,
-    5: <ViolenciaPsicologicaStep
-      caseDetails={complaint.caseDetails}
-      onChange={(caseDetails) => onComplaintUpdate('caseDetails', caseDetails)}
-    />,
-    6: <ExtraInfoStep
-      additionalInfo={complaint.additionalInfo}
-      onChange={(additionalInfo) => onComplaintUpdate('additionalInfo', additionalInfo)}
-    />,
-    7: <ComplaintSummary complaint={complaint} />
-  };
+  if (!complaint.loadedForm) {
+    return null;
+  }
 
-  return steps[currentStep as keyof typeof steps] || null;
+  if (currentStep === 1) {
+    return (
+      <AddressStep
+        address={complaint.address}
+        neighborhoods={neighborhoods}
+        findConselhoByBairro={findConselhoByBairro}
+        onChange={onAddressUpdate}
+        onValidationChange={onValidationChange}
+      />
+    );
+  }
+
+  if (currentStep === steps.length) {
+    return <ComplaintSummary complaint={complaint} onValidationChange={onValidationChange} />;
+  }
+
+  const dynamicStep = complaint.loadedForm.passos[currentStep - 2];
+
+  if (!dynamicStep) {
+    return null;
+  }
+
+  return (
+    <DynamicFormStep
+      key={dynamicStep.id}
+      step={dynamicStep}
+      dynamicAnswers={complaint.dynamicAnswers}
+      onChange={(stepId, fieldId, value) =>
+        onDynamicAnswerUpdate(stepId, fieldId, value)
+      }
+      onValidationChange={onValidationChange}
+    />
+  );
 };

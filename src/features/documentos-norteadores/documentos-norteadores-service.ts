@@ -13,9 +13,31 @@ interface DocumentoApiResponse {
   data_update: string;
 }
 
+interface ProfissaoApiResponse {
+  id: number;
+  nome: string;
+  descricao: string | null;
+  cor: string | null;
+  status: number;
+  data_criacao: string;
+  data_update: string;
+  data_delete: string | null;
+}
+
 export interface DocumentoFocusPoint {
   title: string;
   page?: number;
+}
+
+export interface Profissao {
+  id: number;
+  nome: string;
+  descricao: string;
+  cor: string;
+  status: number;
+  dataCriacao: string;
+  dataUpdate: string;
+  dataDelete: string | null;
 }
 
 export interface DocumentoNorteador {
@@ -121,6 +143,21 @@ const parseFocusPoints = (rawFocusPoints: unknown): DocumentoFocusPoint[] => {
 };
 
 export class DocumentosNorteadoresService {
+  async listProfissoes(): Promise<Profissao[]> {
+    const response = await axios.get<ProfissaoApiResponse[]>(`${API_BASE_URL}/profissoes`);
+
+    return response.data.map((profissao) => ({
+      id: profissao.id,
+      nome: profissao.nome,
+      descricao: profissao.descricao ?? '',
+      cor: profissao.cor ?? '',
+      status: profissao.status,
+      dataCriacao: profissao.data_criacao,
+      dataUpdate: profissao.data_update,
+      dataDelete: profissao.data_delete,
+    }));
+  }
+
   async listByProfissao(profissaoId: number): Promise<DocumentoNorteador[]> {
     const response = await axios.get<DocumentoApiResponse[]>(
       `${API_BASE_URL}/profissoes/${profissaoId}/documentos`

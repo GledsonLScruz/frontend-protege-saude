@@ -40,6 +40,14 @@
   gap: 0.5rem;
 }
 
+.selected-value-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .placeholder {
   color: #9ca3af;
 }
@@ -162,7 +170,7 @@
   background: #9ca3af;
 }
 
-// errors styles
+/* Error styles */
 
 .custom-select-header.error {
   border-color: #dc2626;

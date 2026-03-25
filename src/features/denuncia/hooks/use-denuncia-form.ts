@@ -1,153 +1,168 @@
-import { useEffect, useState } from 'react';
-import { Complaint } from '../types/denuncia';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ComplaintDraft,
+  DynamicAnswers,
+  PublicForm,
+  PublicProfession,
+  createEmptyAddress,
+} from '../types/denuncia';
+import { isDynamicAnswerEmpty, sanitizeDynamicAnswers } from '../utils/dynamic-form';
 
-const STORAGE_KEY = 'encrypted_complaint_data';
+const STORAGE_KEY_PREFIX = 'encrypted_complaint_data_by_profession';
+const LEGACY_STORAGE_KEY = 'encrypted_complaint_data';
 
-const encryptData = (data: any): string => {
+type StoredComplaintDraft = {
+  address: ComplaintDraft['address'];
+  dynamicAnswers: DynamicAnswers;
+};
+
+const encryptData = (data: unknown): string => {
   try {
-    const jsonString = JSON.stringify(data);
-    return btoa(jsonString); // Base64 encoding
+    return btoa(JSON.stringify(data));
   } catch (error) {
     console.error('Erro ao criptografar dados:', error);
     return '';
   }
 };
 
-const decryptData = (encryptedData: string) => {
+const decryptData = <T,>(encryptedData: string): T | null => {
   try {
-    const jsonString = atob(encryptedData);
-    return JSON.parse(jsonString);
+    return JSON.parse(atob(encryptedData)) as T;
   } catch (error) {
     console.error('Erro ao descriptografar dados:', error);
     return null;
   }
 };
 
-const initialComplaint: Complaint = {
-  address: {
-    hasNoInformation: false,
-    cep: '',
-    street: '',
-    number: '',
-    neighborhood: '',
-    councilRegion: undefined
-  },
-  victimData: {
-    name: '',
-    birthDate: '',
-    gender: 'other'
-  },
-  caseDetails: {
-    hasAggressionSigns: false,
-    hasEyeInjury: false,
-    hasBruises: false,
-    hasAbrasion: false,
-    hasLaceration: false,
-    hasBurns: false,
-    hasBiteMarks: false,
-    neglectSigns: false,
-    psychologicalViolenceSigns: false,
-  },
-  additionalInfo: {}
-};
+const buildStorageKey = (professionId: number) =>
+  `${STORAGE_KEY_PREFIX}:${professionId}`;
+
+const hasAddressData = (address: ComplaintDraft['address']): boolean =>
+  Boolean(
+    address.hasNoInformation ||
+      address.cep?.trim() ||
+      address.street?.trim() ||
+      address.number?.trim() ||
+      address.neighborhood?.trim() ||
+      address.councilRegion
+  );
+
+const hasDynamicAnswersData = (dynamicAnswers: DynamicAnswers): boolean =>
+  Object.values(dynamicAnswers).some((stepAnswers) =>
+    Object.values(stepAnswers).some((value) => !isDynamicAnswerEmpty(value))
+  );
 
 export const useComplaintForm = () => {
-  const loadInitialData = (): Complaint => {
-    try {
-      const storedData = localStorage.getItem(STORAGE_KEY);
-      if (storedData) {
-        const decryptedData = decryptData(storedData);
-        if (decryptedData) {
-          return decryptedData as Complaint;
-        }
-      }
-      return initialComplaint;
-    } catch (error) {
-      console.error('Erro ao carregar dados do localStorage:', error);
-      return initialComplaint;
-    }
-  };
-
-  const [complaint, setComplaint] = useState<Complaint>(loadInitialData);
+  const [publicProfessions, setPublicProfessions] = useState<PublicProfession[]>([]);
+  const [selectedProfession, setSelectedProfession] = useState<PublicProfession | null>(null);
+  const [loadedForm, setLoadedFormState] = useState<PublicForm | null>(null);
+  const [address, setAddress] = useState(createEmptyAddress);
+  const [dynamicAnswers, setDynamicAnswers] = useState<DynamicAnswers>({});
   const [pdf, setPdf] = useState<Blob | null>(null);
+  const [isPersistenceEnabled, setIsPersistenceEnabled] = useState(false);
+
+  const complaint = useMemo<ComplaintDraft>(
+    () => ({
+      selectedProfession,
+      loadedForm,
+      address,
+      dynamicAnswers,
+    }),
+    [selectedProfession, loadedForm, address, dynamicAnswers]
+  );
 
   useEffect(() => {
+    if (!isPersistenceEnabled || !selectedProfession) {
+      return;
+    }
+
     try {
-      const encryptedData = encryptData(complaint);
-      localStorage.setItem(STORAGE_KEY, encryptedData);
+      const encryptedData = encryptData({
+        address,
+        dynamicAnswers,
+      } satisfies StoredComplaintDraft);
+
+      localStorage.setItem(buildStorageKey(selectedProfession.id), encryptedData);
     } catch (error) {
       console.error('Erro ao salvar dados no localStorage:', error);
     }
-  }, [complaint]);
+  }, [address, dynamicAnswers, isPersistenceEnabled, selectedProfession]);
 
-  const updateComplaint = (field: keyof Complaint, value: unknown) => {
-    setComplaint(prev => ({
+  const setLoadedForm = (form: PublicForm | null) => {
+    setLoadedFormState(form);
+    setDynamicAnswers((prev) => sanitizeDynamicAnswers(form, prev));
+  };
+
+  const updateAddress = (nextAddress: ComplaintDraft['address']) => {
+    setAddress(nextAddress);
+  };
+
+  const updateDynamicAnswer = (
+    stepId: number,
+    fieldId: number,
+    value: ComplaintDraft['dynamicAnswers'][string][string]
+  ) => {
+    setDynamicAnswers((prev) => ({
       ...prev,
-      [field]: value
+      [String(stepId)]: {
+        ...(prev[String(stepId)] ?? {}),
+        [String(fieldId)]: value,
+      },
     }));
   };
 
-  const hasExistingComplaintData = (): boolean => {
-    try {
-      const storedData = localStorage.getItem(STORAGE_KEY);
-      if (!storedData) return false;
+  const getStoredDraft = (professionId: number): StoredComplaintDraft | null => {
+    const storedData = localStorage.getItem(buildStorageKey(professionId));
+    if (!storedData) return null;
 
-      const jsonString = atob(storedData); // Base64 decoding
-      const complaint = JSON.parse(jsonString) as Complaint;
-
-      // Verifica se tem algum campo preenchido em address
-      if (complaint.address) {
-        if (complaint.address.hasNoInformation ||
-          complaint.address.cep ||
-          complaint.address.street ||
-          complaint.address.number ||
-          complaint.address.neighborhood ||
-          complaint.address.councilRegion) {
-          return true;
-        }
-      }
-
-      // Verifica se tem algum campo preenchido em victimData
-      if (complaint.victimData) {
-        if (complaint.victimData.name ||
-          complaint.victimData.birthDate ||
-          complaint.victimData.gender !== 'other') {
-          return true;
-        }
-      }
-
-      // Verifica se tem algum campo preenchido em caseDetails
-      if (complaint.caseDetails) {
-        if (complaint.caseDetails.hasAggressionSigns ||
-          complaint.caseDetails.hasEyeInjury ||
-          complaint.caseDetails.hasBruises ||
-          complaint.caseDetails.hasAbrasion ||
-          complaint.caseDetails.hasLaceration ||
-          complaint.caseDetails.hasBurns ||
-          complaint.caseDetails.hasBiteMarks ||
-          complaint.caseDetails.neglectSigns ||
-          complaint.caseDetails.psychologicalViolenceSigns) {
-          return true;
-        }
-      }
-
-      // Verifica se tem dados adicionais
-      if (complaint.additionalInfo && Object.keys(complaint.additionalInfo).length > 0) {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Erro ao verificar dados existentes:', error);
-      return false;
-    }
+    return decryptData<StoredComplaintDraft>(storedData);
   };
 
+  const hasExistingComplaintData = (professionId: number): boolean => {
+    const storedDraft = getStoredDraft(professionId);
+    if (!storedDraft) return false;
 
-  const clearStoredData = () => {
+    return (
+      hasAddressData(storedDraft.address) ||
+      hasDynamicAnswersData(storedDraft.dynamicAnswers)
+    );
+  };
+
+  const startNewDraft = (
+    profession: PublicProfession,
+    form: PublicForm,
+    options?: { preserveAddress?: boolean }
+  ) => {
+    setSelectedProfession(profession);
+    setLoadedFormState(form);
+    setDynamicAnswers({});
+    setAddress((prevAddress) =>
+      options?.preserveAddress ? prevAddress : createEmptyAddress()
+    );
+    setIsPersistenceEnabled(true);
+  };
+
+  const restoreStoredDraft = (
+    profession: PublicProfession,
+    form: PublicForm,
+    storedDraft: StoredComplaintDraft
+  ) => {
+    setSelectedProfession(profession);
+    setLoadedFormState(form);
+    setAddress(storedDraft.address ?? createEmptyAddress());
+    setDynamicAnswers(sanitizeDynamicAnswers(form, storedDraft.dynamicAnswers ?? {}));
+    setIsPersistenceEnabled(true);
+  };
+
+  const clearStoredData = (professionId?: number) => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
-      setComplaint(initialComplaint);
+      const targetProfessionId = professionId ?? selectedProfession?.id;
+
+      if (targetProfessionId) {
+        localStorage.removeItem(buildStorageKey(targetProfessionId));
+      }
+
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
     } catch (error) {
       console.error('Erro ao limpar dados do localStorage:', error);
     }
@@ -155,10 +170,23 @@ export const useComplaintForm = () => {
 
   return {
     complaint,
-    updateComplaint,
+    publicProfessions,
+    setPublicProfessions,
+    selectedProfession,
+    loadedForm,
+    address,
+    dynamicAnswers,
+    updateAddress,
+    updateDynamicAnswer,
+    setLoadedForm,
+    setSelectedProfession,
+    startNewDraft,
+    restoreStoredDraft,
+    getStoredDraft,
+    hasExistingComplaintData,
     pdf,
     setPdf,
     clearStoredData,
-    hasExistingComplaintData,
+    setIsPersistenceEnabled,
   };
 };

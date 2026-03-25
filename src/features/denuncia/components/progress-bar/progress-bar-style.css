@@ -3,12 +3,14 @@
 }
 
 .progress-bar-container {
-  margin-bottom: 3.5rem;
+  --step-indicator-size: 42px;
+  margin-bottom: 4.75rem;
   position: relative;
 }
 
 .progress-track {
-  width: 100%;
+  width: calc(100% - var(--step-indicator-size));
+  margin: 0 calc(var(--step-indicator-size) / 2);
   height: 9px;
   background-color: #e5e7eb;
   border-radius: 4px;
@@ -26,11 +28,13 @@
 
 /* Container dos indicadores de passo */
 .step-indicators {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  align-items: start;
   margin-top: -26px;
   position: relative;
-  padding: 0 10px;
+  padding: 0;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  column-gap: 0.35rem;
 }
 
 /* Wrapper do indicador */
@@ -40,12 +44,13 @@
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  min-width: 0;
 }
 
 /* Indicador de passo */
 .step-indicator {
-  width: 42px;
-  height: 42px;
+  width: var(--step-indicator-size);
+  height: var(--step-indicator-size);
   border-radius: 50%;
   background-color: #fff;
   border: 2px solid #e5e7eb;
@@ -65,7 +70,7 @@
   background-color: #F4B63C;
   border-color: #F4B63C;
   color: white;
-  transform: scale(1.2);
+  transform: scale(1.08);
 }
 
 .step-indicator.error {
@@ -83,15 +88,21 @@
 
 /* Label do passo */
 .step-label {
-  position: absolute;
-  top: 64px;
+  position: static;
+  margin-top: 0.9rem;
+  width: 100%;
+  min-height: 2.4rem;
   font-size: 12px;
   font-weight: 500;
   color: #666;
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-6px);
   transition: all 0.3s ease;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.25;
 }
 
 .step-label.error {
@@ -100,7 +111,7 @@
 
 /* Estados do label */
 .step-indicator-wrapper:hover .step-label,
-.step-indicator.active+.step-label {
+.step-label.visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -113,13 +124,18 @@
 
 /* Responsividade */
 @media (max-width: 640px) {
+  .progress-bar-container {
+    --step-indicator-size: 32px;
+    margin-bottom: 2.5rem;
+  }
+
   .step-indicators {
     margin-top: -1.3rem;
+    column-gap: 0.25rem;
+    padding: 0;
   }
 
   .step-indicator {
-    width: 2rem;
-    height: 2rem;
     font-size: 0.7rem;
   }
 

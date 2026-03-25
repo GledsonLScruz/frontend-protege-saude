@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { Address } from '../../../types/denuncia';
+import { Address, CouncilRegion } from '../../../types/denuncia';
 import { AddressController } from './address-controller';
 import { validateAddressStep } from './address-step-validation';
-import { DenunciaController } from '../../../denuncia-controller';
 import { CustomSelect } from '../../../../../shared/components/select';
 import { formatarCEP } from '../../../../../shared/utils/string-utils';
 
@@ -27,13 +26,25 @@ interface AddressStepProps {
   address: Address;
   onChange: (address: Address) => void;
   onValidationChange?: (isValid: boolean) => void;
+  neighborhoods: string[];
+  findConselhoByBairro: (bairro: string) => CouncilRegion | undefined;
 }
 
-export const AddressStep: React.FC<AddressStepProps> = ({ address, onChange, onValidationChange }) => {
+export const AddressStep: React.FC<AddressStepProps> = ({
+  address,
+  onChange,
+  onValidationChange,
+  neighborhoods,
+  findConselhoByBairro,
+}) => {
   const [errors, setErrors] = React.useState<ValidationErrors>({});
   const [touchedFields, setTouchedFields] = React.useState<TouchedFields>({});
-  const denunciaController = new DenunciaController();
-  const addressController = new AddressController();
+  const addressController = React.useMemo(() => new AddressController(), []);
+  const latestAddressRef = React.useRef(address);
+
+  React.useEffect(() => {
+    latestAddressRef.current = address;
+  }, [address]);
 
   const handleBlur = (field: keyof TouchedFields) => {
     setTouchedFields(prev => ({
@@ -41,23 +52,22 @@ export const AddressStep: React.FC<AddressStepProps> = ({ address, onChange, onV
       [field]: true
     }));
   };
-  const neighborhoods = denunciaController.getAllBairros();
   React.useEffect(() => {
     const validationErrors = validateAddressStep(address);
     const isValid = Object.keys(validationErrors).length === 0;
 
     setErrors(validationErrors);
     onValidationChange?.(isValid);
-  }, [address]);
+  }, [address, onValidationChange]);
 
   React.useEffect(() => {
     if (!!address.cep && address.cep?.length >= 8) {
       addressController.getAddressByCep(address.cep)
         .then((addressData) => {
           if (addressData) {
-            const conselho = denunciaController.findConselhoByBairro(addressData.bairro);
+            const conselho = findConselhoByBairro(addressData.bairro);
             onChange({
-              ...address,
+              ...latestAddressRef.current,
               street: addressData.logradouro,
               neighborhood: addressData.bairro,
               councilRegion: conselho ? {
@@ -70,10 +80,10 @@ export const AddressStep: React.FC<AddressStepProps> = ({ address, onChange, onV
           }
         });
     }
-  }, [address.cep])
+  }, [address.cep, addressController, findConselhoByBairro, onChange]);
 
   const handleNeighborhoodChange = (selectedNeighborhood: string) => {
-    const conselho = denunciaController.findConselhoByBairro(selectedNeighborhood);
+    const conselho = findConselhoByBairro(selectedNeighborhood);
 
     onChange({
       ...address,
@@ -118,7 +128,9 @@ export const AddressStep: React.FC<AddressStepProps> = ({ address, onChange, onV
           onBlur={() => handleBlur('street')}
           placeholder="Nome da rua"
         />
-        {touchedFields.street && <span className="error-message">{errors.street}</span>}
+        {touchedFields.street && errors.street && (
+          <span className="error-message">{errors.street}</span>
+        )}
       </div>
 
       <div className="form-group">

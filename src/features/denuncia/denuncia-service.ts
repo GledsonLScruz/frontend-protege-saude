@@ -1,12 +1,31 @@
-import { Complaint } from "./types/denuncia";
 import axios from 'axios';
+import {
+  ComplaintDraft,
+  CouncilRegion,
+  CouncilRegionName,
+  PublicForm,
+  PublicProfession,
+} from './types/denuncia';
 
-interface CouncilRegion {
-  setor: string;
+interface PublicProfessionApiResponse {
+  id: number;
   nome: string;
-  regiao: "norte" | "sul" | "leste" | "oeste";
-  contato: string[];
-  bairros: string[];
+  descricao: string | null;
+  cor: string | null;
+  status: number;
+  data_criacao?: string;
+  data_update?: string;
+  data_delete?: string | null;
+}
+
+interface CouncilTutelarCityResponse {
+  cidade: string;
+  conselhosRegionais?: Array<{
+    setor: string;
+    nome: string;
+    contato: string[];
+    bairros: string[];
+  }>;
 }
 
 interface SubmitComplaintResponse {
@@ -14,204 +33,193 @@ interface SubmitComplaintResponse {
   protocolo: string;
 }
 
-export class DenunciaService {
-  private readonly API_URL = import.meta.env.VITE_BACKEND_URL
+const DEFAULT_API_BASE_URL = 'http://localhost:8080/api';
 
-  private static conselhosRegionais: CouncilRegion[] = [
-    {
-      "setor": "C.T 1 - Norte",
-      "nome": "Conselho Tutelar Norte",
-      "regiao": "norte",
-      "contato": [
-        "83 2017-0062 | 83 2017-0125"
-      ],
-      "bairros": [
-        "Alto Branco",
-        "Araxá",
-        "Bela Vista",
-        "Centro",
-        "Conceição",
-        "Cuités",
-        "Jardim Continental",
-        "Jardim Tavares",
-        "Jeremias",
-        "Lauritzen",
-        "Louzeiro",
-        "Monte Santo",
-        "Nações",
-        "Palmeira",
-        "Prata",
-        "Rosa Mística",
-        "São José"
-      ]
-    },
-    {
-      "setor": "C.T 2 - Sul",
-      "nome": "Conselho Tutelar Sul",
-      "regiao": "sul",
-      "contato": [
-        "83 2017-0059 | 83 2017-0122"
-      ],
-      "bairros": [
-        "Acácio Figueiredo",
-        "Rocha Cavalcanti",
-        "Bairro das Cidades",
-        "Catolé de Boa Vista",
-        "Cinza",
-        "Cruzeiro",
-        "Distrito dos Mecânicos",
-        "Distrito Industrial",
-        "Estação Velha",
-        "Jardim Borborema",
-        "Jardim Paulistano",
-        "Liberdade",
-        "Ligeiro",
-        "Novo Horizonte",
-        "Presidente Médice",
-        "Rosa Cruz",
-        "Ressureição",
-        "Sítio Lucas",
-        "Sítio Paus Brancos",
-        "Sítio Salgadinhos",
-        "Tambor",
-        "Três Irmãs",
-        "Velame",
-        "Catingueira",
-        "Sítio Estreito",
-        "Portal Sudoeste",
-        "Major Veneziano",
-        "Catolé do Zé Ferreira"
-      ]
-    },
-    {
-      "setor": "C.T 3 - Leste",
-      "nome": "Conselho Tutelar Leste",
-      "regiao": "leste",
-      "contato": [
-        "83 2017-0061 | 83 2017-0124"
-      ],
-      "bairros": [
-        "Antiga Cachoeira",
-        "Sandra Cavalcante",
-        "Belo Monte",
-        "Castelo Branco",
-        "Catolé",
-        "Galante",
-        "Glória 1 e 2",
-        "Itararé",
-        "Jardim América",
-        "Jardim Atalaia",
-        "Jardim Europa",
-        "José Pinheiro",
-        "Mirante",
-        "Monte Castelo",
-        "Nova Brasília",
-        "Santa Terezinha",
-        "Porteira de Pedra",
-        "Santo Antonio",
-        "Sítio Pau Dentro",
-        "Sítio Brito",
-        "Sítio Caridade",
-        "Sítio Chã de Dentro",
-        "Sítio de Baixo/Sítio de Cima",
-        "Sítio Laranjeira",
-        "Sítio Marinho",
-        "Sítio Massapé",
-        "Sítio Nova Varzéa",
-        "Sítio Ramo",
-        "Sítio Santana",
-        "Sítio São Jorge",
-        "Sítio Sirudo",
-        "Vila Cabral Santa Terezinha",
-        "Vila Maria da Luz",
-        "Complexo Aluizio Campos"
-      ]
-    },
-    {
-      "setor": "C.T 4 - Oeste",
-      "nome": "Conselho Tutelar Oeste",
-      "regiao": "oeste",
-      "contato": [
-        "83 2017-0060 | 83 2017-0123"
-      ],
-      "bairros": [
-        "Bodocongó",
-        "Pedegral",
-        "Campo de Angola I e II",
-        "Catirina",
-        "Centenário",
-        "Conjunto dos Professores",
-        "Conjunto Mariz",
-        "Conjunto Sonho Meu",
-        "Dinamérica",
-        "Grande Campina",
-        "Lago de Dentro",
-        "Malvinas",
-        "Morro do Pinto",
-        "Morro do Urubu",
-        "Mutirão",
-        "Quarenta",
-        "Novo Bodocongó",
-        "Ramadinha",
-        "Riacho dos Porcos",
-        "Santa Cruz",
-        "Santa Rosa",
-        "São José da Mata",
-        "Serra I e II",
-        "Serrotão",
-        "Sítio Bosque",
-        "Sítio Izidro",
-        "Sítio Joaquim Vieira",
-        "Sítio São Januário",
-        "Universitário",
-        "Vila Cabral de Santa Rosa",
-        "Jardim Quarenta",
-        "Sítio Capim Grande",
-        "Conjunto Alameda",
-        "Severino Cabral"
-      ]
+const normalizeApiBaseUrl = (rawBaseUrl: string | undefined): string => {
+  const trimmedBaseUrl = rawBaseUrl?.trim();
+
+  if (!trimmedBaseUrl) {
+    return DEFAULT_API_BASE_URL;
+  }
+
+  const withoutTrailingSlash = trimmedBaseUrl.replace(/\/+$/, '');
+  return withoutTrailingSlash.endsWith('/api')
+    ? withoutTrailingSlash
+    : `${withoutTrailingSlash}/api`;
+};
+
+const unwrapArrayResponse = <T,>(payload: unknown, keys: string[]): T[] | null => {
+  if (Array.isArray(payload)) {
+    return payload as T[];
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const recordPayload = payload as Record<string, unknown>;
+
+  for (const key of keys) {
+    const nestedValue = recordPayload[key];
+    if (Array.isArray(nestedValue)) {
+      return nestedValue as T[];
     }
-  ]
+  }
 
-  getAllBairros = (): string[] => {
-    return DenunciaService.conselhosRegionais
-      .flatMap(conselho => conselho.bairros)
-      .sort((a, b) => a.localeCompare(b));
-  };
+  if (Array.isArray(recordPayload.data)) {
+    return recordPayload.data as T[];
+  }
 
-  findConselhoByBairro = (bairro: string): CouncilRegion | undefined => {
-    return DenunciaService.conselhosRegionais.find(conselho =>
-      conselho.bairros.includes(bairro)
+  return null;
+};
+
+const mapProfession = (
+  profession: PublicProfessionApiResponse
+): PublicProfession => ({
+  id: profession.id,
+  nome: profession.nome,
+  descricao: profession.descricao ?? '',
+  cor: profession.cor ?? '',
+  status: profession.status,
+  dataCriacao: profession.data_criacao,
+  dataUpdate: profession.data_update,
+  dataDelete: profession.data_delete ?? null,
+});
+
+const inferCouncilRegion = (label: string): CouncilRegionName | undefined => {
+  const normalizedLabel = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  if (normalizedLabel.includes('norte')) return 'norte';
+  if (normalizedLabel.includes('sul')) return 'sul';
+  if (normalizedLabel.includes('leste')) return 'leste';
+  if (normalizedLabel.includes('oeste')) return 'oeste';
+
+  return undefined;
+};
+
+const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  if (axios.isAxiosError(error)) {
+    const apiMessage =
+      error.response?.data?.error ??
+      error.response?.data?.message;
+
+    if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
+      return apiMessage;
+    }
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+};
+
+export class DenunciaService {
+  private readonly API_URL = normalizeApiBaseUrl(import.meta.env.VITE_BACKEND_URL);
+
+  async listPublicProfessions(): Promise<PublicProfession[]> {
+    try {
+      const response = await axios.get<unknown>(
+        `${this.API_URL}/public/profissoes`
+      );
+
+      const professions = unwrapArrayResponse<PublicProfessionApiResponse>(response.data, [
+        'profissoes',
+        'professions',
+        'items',
+      ]);
+
+      if (!professions) {
+        throw new Error('Resposta inválida ao carregar profissões.');
+      }
+
+      return professions.map(mapProfession);
+    } catch (error) {
+      throw new Error(
+        getApiErrorMessage(error, 'Não foi possível carregar as profissões disponíveis.')
+      );
+    }
+  }
+
+  async getPublicForm(professionId: number): Promise<PublicForm> {
+    try {
+      const response = await axios.get<PublicForm>(
+        `${this.API_URL}/public/profissoes/${professionId}/formulario`
+      );
+
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        getApiErrorMessage(error, 'Não foi possível carregar o formulário desta profissão.')
+      );
+    }
+  }
+
+  async getCampinaGrandeCouncils(): Promise<CouncilRegion[]> {
+    try {
+      const response = await axios.get<CouncilTutelarCityResponse>(
+        `${this.API_URL}/conselhos-tutelares/cidade/${encodeURIComponent('Campina Grande')}`
+      );
+
+      return (response.data.conselhosRegionais ?? []).map((regional) => ({
+        setor: regional.setor,
+        nome: regional.nome,
+        contato: regional.contato ?? [],
+        bairros: regional.bairros ?? [],
+        regiao: inferCouncilRegion(`${regional.setor} ${regional.nome}`),
+      }));
+    } catch (error) {
+      throw new Error(
+        getApiErrorMessage(
+          error,
+          'Não foi possível carregar os bairros e conselhos tutelares.'
+        )
+      );
+    }
+  }
+
+  getAllBairros = (conselhosRegionais: CouncilRegion[]): string[] =>
+    [...new Set(conselhosRegionais.flatMap((conselho) => conselho.bairros ?? []))].sort((a, b) =>
+      a.localeCompare(b, 'pt-BR')
     );
-  };
 
-  async submitComplaint(complaint: Complaint, pdf: Blob, protocol: string): Promise<SubmitComplaintResponse> {
+  findConselhoByBairro = (
+    bairro: string,
+    conselhosRegionais: CouncilRegion[]
+  ): CouncilRegion | undefined =>
+    conselhosRegionais.find((conselho) => (conselho.bairros ?? []).includes(bairro));
+
+  async submitComplaint(
+    complaint: ComplaintDraft,
+    pdf: Blob,
+    protocol: string
+  ): Promise<SubmitComplaintResponse> {
+    const professionId = complaint.selectedProfession?.id;
+    if (!professionId) {
+      throw new Error('Profissão não selecionada.');
+    }
+
     const formData = new FormData();
     formData.append('protocolo', protocol);
-    formData.append('regiao', complaint.address?.councilRegion?.regiao || '');
+    formData.append('profissao_id', String(professionId));
+    formData.append('regiao', complaint.address.councilRegion?.regiao || '');
     formData.append('pdf', pdf, `denuncia_${protocol}.pdf`);
-    
+
     try {
-      const response = await axios.post(
+      const response = await axios.post<SubmitComplaintResponse>(
         `${this.API_URL}/denuncia`,
         formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-          }
+          },
         }
       );
 
-      if (response.status !== 200 && response.status !== 201) {
-        throw new Error('Erro ao enviar denúncia');
-      }
-
-      return response.data as SubmitComplaintResponse;
+      return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Erro ao enviar denúncia');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Erro ao enviar denúncia.'));
     }
   }
 }

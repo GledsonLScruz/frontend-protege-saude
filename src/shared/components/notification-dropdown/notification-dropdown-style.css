@@ -65,7 +65,7 @@
 }
 
 .action-button:hover {
-  background: rgba(244, 182, 60, 0.1);
+  background: rgba(var(--profession-accent-rgb, 244, 182, 60), 0.1);
 }
 
 .notifications-content {

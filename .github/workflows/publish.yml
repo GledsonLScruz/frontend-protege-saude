@@ -25,6 +25,6 @@ jobs:
           context: .
           push: true
           tags: |
-            huandrey/odonto-guardiao:latest
+            ${{ secrets.DOCKER_USERNAME }}/frontend-protege-saude:latest
           build-args: |
             VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}

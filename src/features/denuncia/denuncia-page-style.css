@@ -1,3 +1,7 @@
+.report-flow-container {
+  padding-top: 80px;
+}
+
 .step-form {
   background-color: #fff;
   padding: 20px;
@@ -68,7 +72,7 @@ textarea {
 .next-button,
 .generate-pdf-button,
 .submit-button {
-  background-color: #F4B63C;
+  background-color: var(--profession-accent, var(--primary-color, #F4B63C));
   color: white;
 }
 
@@ -80,7 +84,7 @@ textarea {
 .next-button:hover,
 .generate-pdf-button:hover,
 .submit-button:hover {
-  background-color: #E5A62C;
+  background-color: var(--profession-accent-strong, #E5A832);
 }
 
 .prev-button:hover {
@@ -125,6 +129,10 @@ textarea {
 }
 
 @media (max-width: 600px) {
+  .report-flow-container {
+    padding-top: 72px;
+  }
+
   .button-group {
     flex-direction: column;
   }

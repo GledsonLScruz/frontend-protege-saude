@@ -60,7 +60,7 @@
   visibility: hidden;
   position: absolute;
   top: 1rem;
-  background-color: #FBC02D;
+  background-color: var(--profession-accent, var(--primary-color));
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 8px;

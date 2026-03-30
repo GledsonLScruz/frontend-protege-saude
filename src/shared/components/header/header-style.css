@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  height: 64px;
+  height: 88px;
 }
 
 .header-left,
@@ -37,25 +37,17 @@
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
+  justify-content: center;
+  height: 100%;
 }
 
-.logo-icon {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 0.5rem 3rem; 
-  font-weight: bold;
-  font-size: 1.5rem;
-  min-width: 14rem; 
-  height: 40px; 
+.logo-image {
+  height: 72px;
+  width: auto;
+  max-width: min(340px, 72vw);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .header-title {
@@ -139,14 +131,14 @@
     font-size: 1.1rem;
   }
 
-  .logo-icon {
-    font-size: 1.3rem;
-    min-width: 12rem; 
+  .logo-image {
+    height: 56px;
+    max-width: 68vw;
   }
 
   .header-content {
     padding: 0.75rem 1rem;
-    height: 56px;
+    height: 76px;
   }
 }
 

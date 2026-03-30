@@ -21,14 +21,14 @@ export const SobreContent: React.FC = () => {
   return (
     <div className="about-container">
       <div className="parallax-header" style={{ backgroundPositionY: scrollY * 0.5 }}>
-        <h1>Sobre o OdontoGuardião</h1>
+        <h1>Sobre o ProtegeSaúde</h1>
       </div>
 
       <div className="content-wrapper">
         <section className="about-section card">
           <Book color="white" size={48} className="section-icon" />
           <h2>Nossa Origem</h2>
-          <p>O OdontoGuardião nasceu de um projeto de extensão do curso de Odontologia da UEPB, visando criar uma ferramenta para auxiliar profissionais de saúde na identificação e denúncia de casos de maus-tratos e violência contra crianças e adolescentes.</p>
+          <p>O ProtegeSaúde nasceu de um projeto de extensão do curso de Odontologia da UEPB, visando criar uma ferramenta para auxiliar profissionais de saúde na identificação e denúncia de casos de maus-tratos e violência contra crianças e adolescentes.</p>
         </section>
 
         <section className="about-section card">
@@ -46,8 +46,8 @@ export const SobreContent: React.FC = () => {
         <section className="about-section card">
           <Github color="white" size={48} className="section-icon" />
           <h2>Código Aberto</h2>
-          <p>O OdontoGuardião é um projeto de código aberto, permitindo que a comunidade contribua para seu desenvolvimento e melhoria contínua.</p>
-          <a href="https://github.com/huandrey/odontoguardiao" target="_blank" rel="noopener noreferrer" className="link-button">
+          <p>O ProtegeSaúde é um projeto de código aberto, permitindo que a comunidade contribua para seu desenvolvimento e melhoria contínua.</p>
+          <a href="https://github.com/GledsonLScruz/frontend-protege-saude" target="_blank" rel="noopener noreferrer" className="link-button">
             Acessar no GitHub
           </a>
         </section>
@@ -55,7 +55,7 @@ export const SobreContent: React.FC = () => {
         <section className="about-section card">
           <Youtube color="white" size={48} className="section-icon" />
           <h2>Processo Criativo</h2>
-          <p>Todo o processo criativo por trás do desenvolvimento do OdontoGuardião está documentado e disponível para visualização.</p>
+          <p>Todo o processo criativo por trás do desenvolvimento do ProtegeSaúde está documentado e disponível para visualização.</p>
           <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer" className="link-button">
             <Play color="white" />
             Ver no YouTube
@@ -64,12 +64,12 @@ export const SobreContent: React.FC = () => {
 
         <button onClick={handleShareClick} className="share-button">
           <Share2 size={20} />
-          Compartilhar o OdontoGuardião
+          Compartilhar o ProtegeSaúde
         </button>
 
         <footer className="about-footer">
           <Heart className="heart-icon" />
-          <p>Todos os direitos reservados © OdontoGuardião 2024</p>
+          <p>Todos os direitos reservados © ProtegeSaúde 2024</p>
         </footer>
       </div>
 

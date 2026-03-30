@@ -34,8 +34,12 @@ export const LoginContent: React.FC = () => {
   return (
     <div className="login-page">
       <div className="app-logo">
-        <div className="logo-initials">OG</div>
-        <div className="logo-full">OdontoGuardião</div>
+        <img
+          className="logo-mark"
+          src="/icon-192x192.png"
+          alt="Icone do ProtegeSaude"
+        />
+        <div className="logo-full">ProtegeSaúde</div>
       </div>
       <div className="login-container">
         <h1>Login</h1>

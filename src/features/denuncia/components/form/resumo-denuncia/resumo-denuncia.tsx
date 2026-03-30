@@ -34,9 +34,31 @@ export const ComplaintSummary: React.FC<ComplaintSummaryProps> = ({
 
             <div className="details-list">
               {section.items.map((item) => (
-                <p key={`${section.title}-${item.label}`}>
-                  <strong>{item.label}:</strong> {item.value}
-                </p>
+                item.type === 'text' ? (
+                  <p key={`${section.title}-${item.label}`}>
+                    <strong>{item.label}:</strong> {item.value}
+                  </p>
+                ) : (
+                  <div key={`${section.title}-${item.label}`} className="summary-photos-block">
+                    <p>
+                      <strong>{item.label}:</strong>{' '}
+                      {item.photos.length > 0
+                        ? `${item.photos.length} foto${item.photos.length > 1 ? 's' : ''} selecionada${item.photos.length > 1 ? 's' : ''}`
+                        : item.emptyText}
+                    </p>
+
+                    {item.photos.length > 0 && (
+                      <div className="summary-photo-grid">
+                        {item.photos.map((photo) => (
+                          <figure key={photo.id} className="summary-photo-card">
+                            <img src={photo.dataUrl} alt={photo.name} className="summary-photo-image" />
+                            <figcaption>{photo.name}</figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
               ))}
             </div>
           </div>

@@ -1,4 +1,5 @@
 import {
+  ComplaintPhoto,
   DynamicAnswerValue,
   DynamicAnswers,
   PublicForm,
@@ -8,8 +9,7 @@ import {
 
 export const DEFAULT_NOT_INFORMED = 'Não informado';
 export const DEFAULT_NOT_APPLICABLE = 'Não se aplica';
-export const PHOTO_FIELD_UNAVAILABLE_MESSAGE =
-  'O envio de fotos ainda não está disponível neste fluxo.';
+export const DEFAULT_NO_PHOTOS = 'Nenhuma foto selecionada.';
 
 const getDateParts = (value: string): [number, number, number] | null => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -70,6 +70,65 @@ export const isDynamicAnswerEmpty = (value: DynamicAnswerValue): boolean => {
   return false;
 };
 
+export const isPhotoAnswer = (
+  value: DynamicAnswerValue
+): value is ComplaintPhoto[] =>
+  Array.isArray(value) &&
+  value.every(
+    (item) =>
+      item !== null &&
+      typeof item === 'object' &&
+      'id' in item &&
+      'name' in item &&
+      'type' in item &&
+      'size' in item &&
+      'dataUrl' in item
+  );
+
+const sanitizePhotoAnswer = (value: DynamicAnswerValue): ComplaintPhoto[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (
+      !item ||
+      typeof item !== 'object' ||
+      !('id' in item) ||
+      !('name' in item) ||
+      !('type' in item) ||
+      !('size' in item) ||
+      !('dataUrl' in item)
+    ) {
+      return [];
+    }
+
+    const { id, name, type, size, dataUrl } = item as ComplaintPhoto;
+
+    if (
+      typeof id !== 'string' ||
+      typeof name !== 'string' ||
+      typeof type !== 'string' ||
+      typeof size !== 'number' ||
+      typeof dataUrl !== 'string'
+    ) {
+      return [];
+    }
+
+    return [{ id, name, type, size, dataUrl }];
+  });
+};
+
+export const getFieldMaxPhotos = (field: PublicFormField): number => {
+  const rawLimit = field.validacoes?.max_fotos ?? field.max_fotos ?? 1;
+
+  if (typeof rawLimit !== 'number' || Number.isNaN(rawLimit) || rawLimit < 1) {
+    return 1;
+  }
+
+  return Math.floor(rawLimit);
+};
+
 export const sanitizeDynamicAnswers = (
   form: PublicForm | null,
   dynamicAnswers: DynamicAnswers
@@ -84,6 +143,11 @@ export const sanitizeDynamicAnswers = (
       (fieldAccumulator, field) => {
         const answer = stepAnswers[getFieldStorageKey(field.id)];
         if (answer === undefined) return fieldAccumulator;
+
+        if (field.tipo_campo === 'foto') {
+          fieldAccumulator[getFieldStorageKey(field.id)] = sanitizePhotoAnswer(answer);
+          return fieldAccumulator;
+        }
 
         fieldAccumulator[getFieldStorageKey(field.id)] = answer;
         return fieldAccumulator;
@@ -166,7 +230,9 @@ export const validateDynamicField = (
       return undefined;
 
     case 'checkbox': {
-      const arrayValue = Array.isArray(value) ? value : [];
+      const arrayValue = Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === 'string')
+        : [];
       if (field.obrigatorio && arrayValue.length === 0) {
         return 'Selecione ao menos uma opção.';
       }
@@ -188,7 +254,16 @@ export const validateDynamicField = (
     }
 
     case 'foto':
-      return field.obrigatorio ? PHOTO_FIELD_UNAVAILABLE_MESSAGE : undefined;
+      if (!isPhotoAnswer(value)) {
+        return field.obrigatorio ? 'Envie ao menos uma foto.' : undefined;
+      }
+      if (field.obrigatorio && value.length === 0) {
+        return 'Envie ao menos uma foto.';
+      }
+      if (value.length > getFieldMaxPhotos(field)) {
+        return `Você pode enviar até ${getFieldMaxPhotos(field)} foto${getFieldMaxPhotos(field) > 1 ? 's' : ''}.`;
+      }
+      return undefined;
 
     default:
       return undefined;
@@ -207,14 +282,12 @@ export const formatDynamicAnswerValue = (
   field: PublicFormField,
   value: DynamicAnswerValue
 ): string => {
-  if (field.tipo_campo === 'foto') {
-    return PHOTO_FIELD_UNAVAILABLE_MESSAGE;
-  }
-
   if (isDynamicAnswerEmpty(value)) {
     return field.tipo_campo === 'checkbox'
       ? DEFAULT_NOT_APPLICABLE
-      : DEFAULT_NOT_INFORMED;
+      : field.tipo_campo === 'foto'
+        ? DEFAULT_NO_PHOTOS
+        : DEFAULT_NOT_INFORMED;
   }
 
   switch (field.tipo_campo) {
@@ -228,7 +301,10 @@ export const formatDynamicAnswerValue = (
 
     case 'checkbox':
       return Array.isArray(value)
-        ? value.map((item) => getFieldOptionLabel(field, item)).join(', ')
+        ? value
+            .filter((item): item is string => typeof item === 'string')
+            .map((item) => getFieldOptionLabel(field, item))
+            .join(', ')
         : DEFAULT_NOT_APPLICABLE;
 
     case 'data':
@@ -240,6 +316,11 @@ export const formatDynamicAnswerValue = (
         ? `${digits.slice(0, 5)}-${digits.slice(5)}`
         : DEFAULT_NOT_INFORMED;
     }
+
+    case 'foto':
+      return isPhotoAnswer(value)
+        ? `${value.length} foto${value.length > 1 ? 's' : ''} selecionada${value.length > 1 ? 's' : ''}`
+        : DEFAULT_NO_PHOTOS;
 
     default:
       return String(value).trim() || DEFAULT_NOT_INFORMED;

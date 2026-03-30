@@ -24,8 +24,12 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="logo-icon">OG</div>
-            <span className="logo-text">OdontoGuardião</span>
+            <img
+              className="logo-icon"
+              src="/icon-192x192.png"
+              alt="Icone do ProtegeSaude"
+            />
+            <span className="logo-text">ProtegeSaúde</span>
           </div>
         </div>
 

@@ -30,7 +30,6 @@ export const HomeContent = () => {
 
         <Header.Center>
           <Header.Logo />
-          <Header.Title>OdontoGuardião</Header.Title>
         </Header.Center>
 
         <Header.Right>

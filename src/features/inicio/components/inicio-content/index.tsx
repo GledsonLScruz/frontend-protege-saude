@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './inicio-v2-content.css';
-// import kidImage from '../../assets/kid.png'
 
 export const InicioV2Content = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -21,10 +20,15 @@ export const InicioV2Content = () => {
 
   return (
     <div className="welcome-screen">
-      {/* <img className="animated-kid-image" src={kidImage} alt="logo-kid" width={200} height={200} /> */}
-      <div className="animated-kid-image"><p className="animated-text-content">OG</p></div>
+      <img
+        className="animated-kid-image"
+        src="/icon-192x192.png"
+        alt="Icone do ProtegeSaude"
+        width={120}
+        height={120}
+      />
       <div className="welcome-content">
-        <h1 className="app-title">OdontoGuardião</h1>
+        <h1 className="app-title">ProtegeSaúde</h1>
         <p className="app-description">
           Desenvolvido para auxiliar na identificação de vítimas de maus-tratos e violência.
         </p>

@@ -131,7 +131,21 @@ export interface PublicForm {
   passos: PublicFormStep[];
 }
 
-export type DynamicAnswerValue = string | boolean | string[] | null | undefined;
+export interface ComplaintPhoto {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  dataUrl: string;
+}
+
+export type DynamicAnswerValue =
+  | string
+  | boolean
+  | string[]
+  | ComplaintPhoto[]
+  | null
+  | undefined;
 
 export type DynamicAnswers = Record<string, Record<string, DynamicAnswerValue>>;
 

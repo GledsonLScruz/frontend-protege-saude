@@ -1,11 +1,13 @@
-interface LogoProps {
-  icon?: string;
-}
+import logoImage from '../../../../assets/protege-saude-logo.jpeg';
 
-const Logo = ({ icon = 'OdontoGuardião' }: LogoProps) => {
+const Logo = () => {
   return (
     <div className="logo-container">
-      <div className="logo-icon">{icon}</div>
+      <img
+        className="logo-image"
+        src={logoImage}
+        alt="Logo do ProtegeSaúde"
+      />
     </div>
   );
 };

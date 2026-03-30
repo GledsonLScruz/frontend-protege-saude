@@ -6,24 +6,18 @@ import {
   PublicProfession,
   createEmptyAddress,
 } from '../types/denuncia';
+import {
+  PersistedComplaintDraft,
+  deletePersistedComplaintDraft,
+  getPersistedComplaintDraft,
+  savePersistedComplaintDraft,
+} from '../utils/complaint-draft-storage';
 import { isDynamicAnswerEmpty, sanitizeDynamicAnswers } from '../utils/dynamic-form';
 
 const STORAGE_KEY_PREFIX = 'encrypted_complaint_data_by_profession';
 const LEGACY_STORAGE_KEY = 'encrypted_complaint_data';
 
-type StoredComplaintDraft = {
-  address: ComplaintDraft['address'];
-  dynamicAnswers: DynamicAnswers;
-};
-
-const encryptData = (data: unknown): string => {
-  try {
-    return btoa(JSON.stringify(data));
-  } catch (error) {
-    console.error('Erro ao criptografar dados:', error);
-    return '';
-  }
-};
+type StoredComplaintDraft = PersistedComplaintDraft;
 
 const decryptData = <T,>(encryptedData: string): T | null => {
   try {
@@ -76,16 +70,16 @@ export const useComplaintForm = () => {
       return;
     }
 
-    try {
-      const encryptedData = encryptData({
-        address,
-        dynamicAnswers,
-      } satisfies StoredComplaintDraft);
-
-      localStorage.setItem(buildStorageKey(selectedProfession.id), encryptedData);
-    } catch (error) {
-      console.error('Erro ao salvar dados no localStorage:', error);
-    }
+    void (async () => {
+      try {
+        await savePersistedComplaintDraft(selectedProfession.id, {
+          address,
+          dynamicAnswers,
+        } satisfies StoredComplaintDraft);
+      } catch (error) {
+        console.error('Erro ao salvar dados do rascunho:', error);
+      }
+    })();
   }, [address, dynamicAnswers, isPersistenceEnabled, selectedProfession]);
 
   const setLoadedForm = (form: PublicForm | null) => {
@@ -111,21 +105,47 @@ export const useComplaintForm = () => {
     }));
   };
 
-  const getStoredDraft = (professionId: number): StoredComplaintDraft | null => {
-    const storedData = localStorage.getItem(buildStorageKey(professionId));
-    if (!storedData) return null;
+  const getLegacyStoredDraft = (professionId: number): StoredComplaintDraft | null => {
+    const professionDraft = localStorage.getItem(buildStorageKey(professionId));
+    if (professionDraft) {
+      return decryptData<StoredComplaintDraft>(professionDraft);
+    }
 
-    return decryptData<StoredComplaintDraft>(storedData);
+    const legacyDraft = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacyDraft) {
+      return decryptData<StoredComplaintDraft>(legacyDraft);
+    }
+
+    return null;
   };
 
-  const hasExistingComplaintData = (professionId: number): boolean => {
-    const storedDraft = getStoredDraft(professionId);
+  const getStoredDraft = async (professionId: number): Promise<StoredComplaintDraft | null> => {
+    const indexedDbDraft = await getPersistedComplaintDraft(professionId);
+    if (indexedDbDraft) {
+      return indexedDbDraft;
+    }
+
+    const legacyDraft = getLegacyStoredDraft(professionId);
+    if (!legacyDraft) {
+      return null;
+    }
+
+    try {
+      await savePersistedComplaintDraft(professionId, legacyDraft);
+      localStorage.removeItem(buildStorageKey(professionId));
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch (error) {
+      console.error('Erro ao migrar rascunho legado:', error);
+    }
+
+    return legacyDraft;
+  };
+
+  const hasExistingComplaintData = async (professionId: number): Promise<boolean> => {
+    const storedDraft = await getStoredDraft(professionId);
     if (!storedDraft) return false;
 
-    return (
-      hasAddressData(storedDraft.address) ||
-      hasDynamicAnswersData(storedDraft.dynamicAnswers)
-    );
+    return hasAddressData(storedDraft.address) || hasDynamicAnswersData(storedDraft.dynamicAnswers);
   };
 
   const startNewDraft = (
@@ -154,17 +174,18 @@ export const useComplaintForm = () => {
     setIsPersistenceEnabled(true);
   };
 
-  const clearStoredData = (professionId?: number) => {
-    try {
-      const targetProfessionId = professionId ?? selectedProfession?.id;
+  const clearStoredData = async (professionId?: number) => {
+    const targetProfessionId = professionId ?? selectedProfession?.id;
 
+    try {
       if (targetProfessionId) {
+        await deletePersistedComplaintDraft(targetProfessionId);
         localStorage.removeItem(buildStorageKey(targetProfessionId));
       }
 
       localStorage.removeItem(LEGACY_STORAGE_KEY);
     } catch (error) {
-      console.error('Erro ao limpar dados do localStorage:', error);
+      console.error('Erro ao limpar dados do rascunho:', error);
     }
   };
 

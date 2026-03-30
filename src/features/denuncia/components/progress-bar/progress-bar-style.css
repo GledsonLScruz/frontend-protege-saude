@@ -4,7 +4,7 @@
 
 .progress-bar-container {
   --step-indicator-size: 42px;
-  margin-bottom: 4.75rem;
+  margin-bottom: 1.75rem;
   position: relative;
 }
 
@@ -21,7 +21,7 @@
 .progress-bar {
   height: 100%;
   width: 14.28%; /* Representa 1/7 do progresso */
-  background-color: #F4B63C;
+  background-color: var(--profession-accent, #F4B63C);
   transition: width 0.3s ease;
   border-radius: 4px;
 }
@@ -67,8 +67,8 @@
 
 /* Estado ativo do indicador */
 .step-indicator.active {
-  background-color: #F4B63C;
-  border-color: #F4B63C;
+  background-color: var(--profession-accent, #F4B63C);
+  border-color: var(--profession-accent, #F4B63C);
   color: white;
   transform: scale(1.08);
 }
@@ -81,8 +81,8 @@
 
 /* Estado completo do indicador */
 .step-indicator.completed {
-  background-color: #F4B63C;
-  border-color: #F4B63C;
+  background-color: var(--profession-accent, #F4B63C);
+  border-color: var(--profession-accent, #F4B63C);
   color: white;
 }
 
@@ -118,7 +118,7 @@
 
 /* Estado hover do indicador */
 .step-indicator-wrapper:hover .step-indicator:not(.active):not(.disabled) {
-  border-color: #F4B63C;
+  border-color: var(--profession-accent, #F4B63C);
   transform: scale(1.1);
 }
 
@@ -126,7 +126,7 @@
 @media (max-width: 640px) {
   .progress-bar-container {
     --step-indicator-size: 32px;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.25rem;
   }
 
   .step-indicators {

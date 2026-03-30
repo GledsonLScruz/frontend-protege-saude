@@ -47,17 +47,12 @@
 }
 
 .logo-icon {
-  background: var(--primary-color);
-  color: white;
-  border-radius: 12px;
-  padding: 0.5rem;
-  font-weight: bold;
-  font-size: 1rem;
   width: 40px;
   height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 .logo-text {

@@ -9,18 +9,20 @@
 }
 
 .app-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 2rem;
   text-align: center;
   animation: fadeInDown 0.8s ease-out;
 }
 
-.logo-initials {
-  font-size: 4rem;
-  font-weight: bold;
-  color: #F4B63C;
-  background: linear-gradient(45deg, #F4B63C, #E5A62C);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.logo-mark {
+  width: 88px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
   margin-bottom: 0.5rem;
 }
 
@@ -189,8 +191,9 @@
     padding: 1.5rem;
   }
 
-  .logo-initials {
-    font-size: 3rem;
+  .logo-mark {
+    width: 72px;
+    height: 72px;
   }
 
   .logo-full {

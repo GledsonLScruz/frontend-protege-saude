@@ -13,6 +13,47 @@ import {
 type DownloadStatus = 'downloading' | 'success' | 'error';
 
 const documentosNorteadoresService = new DocumentosNorteadoresService();
+const DEFAULT_PROFESSION_ACCENT = '#F4B63C';
+
+const normalizeHexColor = (rawColor?: string | null): string | null => {
+  if (!rawColor) {
+    return null;
+  }
+
+  const trimmed = rawColor.trim();
+  const normalized = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+
+  if (/^#([0-9a-fA-F]{3}){1,2}$/.test(normalized)) {
+    if (normalized.length === 4) {
+      return `#${normalized[1]}${normalized[1]}${normalized[2]}${normalized[2]}${normalized[3]}${normalized[3]}`;
+    }
+
+    return normalized.toUpperCase();
+  }
+
+  return null;
+};
+
+const hexToRgb = (hexColor: string): [number, number, number] => {
+  const normalized = hexColor.replace('#', '');
+  const parsed = Number.parseInt(normalized, 16);
+
+  return [
+    (parsed >> 16) & 255,
+    (parsed >> 8) & 255,
+    parsed & 255,
+  ];
+};
+
+const darkenHexColor = (hexColor: string, amount: number): string => {
+  const [red, green, blue] = hexToRgb(hexColor);
+  const nextChannel = (channel: number) =>
+    Math.max(0, Math.min(255, Math.round(channel * (1 - amount))));
+
+  return `#${[nextChannel(red), nextChannel(green), nextChannel(blue)]
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('')}`.toUpperCase();
+};
 
 interface DocumentosNorteadoresContentProps {
   initialProfissaoId?: string;
@@ -165,6 +206,65 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
       null,
     [profissoes, selectedProfissaoId]
   );
+  const themeStyle = React.useMemo<React.CSSProperties>(() => {
+    const accent = normalizeHexColor(selectedProfissao?.cor) ?? DEFAULT_PROFESSION_ACCENT;
+    const [red, green, blue] = hexToRgb(accent);
+
+    return {
+      ['--profession-accent' as string]: accent,
+      ['--profession-accent-rgb' as string]: `${red}, ${green}, ${blue}`,
+      ['--profession-accent-strong' as string]: darkenHexColor(accent, 0.12),
+      ['--primary-color' as string]: accent,
+    };
+  }, [selectedProfissao]);
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const previousPrimaryColor = root.style.getPropertyValue('--primary-color');
+    const previousProfessionAccent = root.style.getPropertyValue('--profession-accent');
+    const previousProfessionAccentRgb = root.style.getPropertyValue('--profession-accent-rgb');
+    const previousProfessionAccentStrong = root.style.getPropertyValue('--profession-accent-strong');
+    const accent = normalizeHexColor(selectedProfissao?.cor);
+
+    if (accent) {
+      const [red, green, blue] = hexToRgb(accent);
+      root.style.setProperty('--primary-color', accent);
+      root.style.setProperty('--profession-accent', accent);
+      root.style.setProperty('--profession-accent-rgb', `${red}, ${green}, ${blue}`);
+      root.style.setProperty('--profession-accent-strong', darkenHexColor(accent, 0.12));
+    } else {
+      root.style.removeProperty('--primary-color');
+      root.style.removeProperty('--profession-accent');
+      root.style.removeProperty('--profession-accent-rgb');
+      root.style.removeProperty('--profession-accent-strong');
+    }
+
+    return () => {
+      if (previousPrimaryColor) {
+        root.style.setProperty('--primary-color', previousPrimaryColor);
+      } else {
+        root.style.removeProperty('--primary-color');
+      }
+
+      if (previousProfessionAccent) {
+        root.style.setProperty('--profession-accent', previousProfessionAccent);
+      } else {
+        root.style.removeProperty('--profession-accent');
+      }
+
+      if (previousProfessionAccentRgb) {
+        root.style.setProperty('--profession-accent-rgb', previousProfessionAccentRgb);
+      } else {
+        root.style.removeProperty('--profession-accent-rgb');
+      }
+
+      if (previousProfessionAccentStrong) {
+        root.style.setProperty('--profession-accent-strong', previousProfessionAccentStrong);
+      } else {
+        root.style.removeProperty('--profession-accent-strong');
+      }
+    };
+  }, [selectedProfissao]);
 
   const clearDownloadStatus = (documentoId: number) => {
     setTimeout(() => {
@@ -241,7 +341,7 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
 
   return (
     <>
-      <div className="legaldoc-container">
+      <div className="legaldoc-container" style={themeStyle}>
         <Header>
           <Header.Left>
             <Header.BackButton onClick={() => navigate('/')} />

@@ -38,7 +38,7 @@
 }
 
 .modal-button {
-  background-color: #f4a300;
+  background-color: var(--primary-color, #F4B63C);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -48,7 +48,7 @@
 }
 
 .modal-button:hover {
-  background-color: #e69500;
+  background-color: var(--profession-accent-strong, #E5A832);
 }
 
 .modal-close {
@@ -64,6 +64,6 @@
 }
 
 .modal-close.secondary:hover {
-  color: #e69500;
+  color: var(--primary-color, #F4B63C);
 
 }

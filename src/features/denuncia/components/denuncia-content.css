@@ -3,6 +3,9 @@
 }
 
 .complaint-form {
+  --profession-accent: #F4B63C;
+  --profession-accent-rgb: 244, 182, 60;
+  --profession-accent-strong: #E5A832;
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
@@ -13,6 +16,7 @@
 }
 
 .step-content {
+  position: relative;
   background: white;
   padding: 3rem;
   border-radius: 8px;
@@ -20,6 +24,66 @@
   margin-bottom: 2rem;
 
   min-height: 300px;
+}
+
+.complaint-submit-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+}
+
+.complaint-submit-overlay-card {
+  max-width: 360px;
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--profession-accent-rgb), 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(var(--profession-accent-rgb), 0.12) 0%,
+    #ffffff 100%
+  );
+  box-shadow:
+    0 16px 40px rgba(28, 28, 28, 0.12),
+    0 10px 28px rgba(var(--profession-accent-rgb), 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.complaint-submit-overlay-card strong {
+  color: #2f2f2f;
+  font-size: 1.05rem;
+}
+
+.complaint-submit-overlay-card p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.complaint-submit-spinner {
+  color: var(--profession-accent);
+  animation: complaint-submit-spin 1s linear infinite;
+}
+
+@keyframes complaint-submit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .change-profession-button {

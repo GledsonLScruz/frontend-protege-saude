@@ -1,4 +1,7 @@
 .legaldoc-container {
+  --profession-accent: #F4B63C;
+  --profession-accent-rgb: 244, 182, 60;
+  --profession-accent-strong: #E5A832;
   background-color: #f8f9fc;
   min-height: 100vh;
   display: flex;
@@ -84,7 +87,7 @@ nav {
   width: 44px;
   height: 44px;
   border: 4px solid #f2d88b;
-  border-top-color: #FBC02D;
+  border-top-color: var(--profession-accent, var(--primary-color, #F4B63C));
   border-radius: 50%;
   animation: legaldoc-spin 0.8s linear infinite;
 }
@@ -116,7 +119,7 @@ nav {
 }
 
 .legaldoc-highlight {
-  color: #FBC02D;
+  color: var(--profession-accent, var(--primary-color, #F4B63C));
 }
 
 .legaldoc-hero-description {
@@ -131,10 +134,16 @@ nav {
   max-width: 720px;
   margin: 0 auto 2rem;
   padding: 1.25rem;
-  background-color: #ffffff;
-  border: 1px solid #edf2f7;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--profession-accent-rgb), 0.08) 0%,
+    #ffffff 100%
+  );
+  border: 1px solid rgba(var(--profession-accent-rgb), 0.2);
   border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.06),
+    0 8px 24px rgba(var(--profession-accent-rgb), 0.12);
 }
 
 .legaldoc-selected-description {
@@ -238,7 +247,7 @@ nav {
 
 .legaldoc-focus-point-item:before {
   content: "•";
-  color: #FBC02D;
+  color: var(--profession-accent, var(--primary-color, #F4B63C));
   font-weight: bold;
   position: absolute;
   left: 0;
@@ -270,20 +279,20 @@ nav {
 }
 
 .legaldoc-cta-primary {
-  background-color: #FBC02D;
+  background-color: var(--profession-accent, var(--primary-color, #F4B63C));
   color: white;
   border: none;
 }
 
 .legaldoc-cta-outline {
   background-color: transparent;
-  border: 2px solid #FBC02D;
-  color: #FBC02D;
+  border: 2px solid var(--profession-accent, var(--primary-color, #F4B63C));
+  color: var(--profession-accent, var(--primary-color, #F4B63C));
 }
 
 .legaldoc-cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(244, 182, 60, 0.2);
+  box-shadow: 0 4px 6px rgba(var(--profession-accent-rgb), 0.2);
 }
 
 .legaldoc-cta-button:active {

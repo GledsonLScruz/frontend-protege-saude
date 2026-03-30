@@ -1,19 +1,32 @@
 import {
+  ComplaintPhoto,
   ComplaintDraft,
   DynamicAnswerValue,
   PublicFormField,
   PublicFormStep,
 } from '../types/denuncia';
 import {
+  DEFAULT_NO_PHOTOS,
   DEFAULT_NOT_INFORMED,
   formatDynamicAnswerValue,
   getFieldStorageKey,
+  isPhotoAnswer,
 } from './dynamic-form';
 
-export interface ComplaintSummaryItem {
+export interface ComplaintSummaryTextItem {
+  type: 'text';
   label: string;
   value: string;
 }
+
+export interface ComplaintSummaryPhotoItem {
+  type: 'photos';
+  label: string;
+  photos: ComplaintPhoto[];
+  emptyText: string;
+}
+
+export type ComplaintSummaryItem = ComplaintSummaryTextItem | ComplaintSummaryPhotoItem;
 
 export interface ComplaintSummarySection {
   title: string;
@@ -32,48 +45,77 @@ const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] =
   const councilContact = draft.address.councilRegion?.contato?.join(' | ');
 
   if (draft.address.hasNoInformation) {
-    return [
-      {
-        label: 'Bairro aproximado',
-        value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
-      },
-      {
-        label: 'Conselho Tutelar',
-        value: draft.address.councilRegion?.nome || DEFAULT_NOT_INFORMED,
-      },
-      {
-        label: 'Contato',
-        value: councilContact || DEFAULT_NOT_INFORMED,
-      },
-    ];
-  }
-
   return [
     {
-      label: 'CEP',
-      value: draft.address.cep?.trim() || DEFAULT_NOT_INFORMED,
-    },
-    {
-      label: 'Rua',
-      value: draft.address.street?.trim() || DEFAULT_NOT_INFORMED,
-    },
-    {
-      label: 'Número',
-      value: draft.address.number?.trim() || DEFAULT_NOT_INFORMED,
-    },
-    {
-      label: 'Bairro',
+      type: 'text',
+      label: 'Bairro aproximado',
       value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
     },
     {
+      type: 'text',
       label: 'Conselho Tutelar',
       value: draft.address.councilRegion?.nome || DEFAULT_NOT_INFORMED,
     },
     {
+      type: 'text',
       label: 'Contato',
       value: councilContact || DEFAULT_NOT_INFORMED,
     },
   ];
+  }
+
+  return [
+    {
+      type: 'text',
+      label: 'CEP',
+      value: draft.address.cep?.trim() || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Rua',
+      value: draft.address.street?.trim() || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Número',
+      value: draft.address.number?.trim() || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Bairro',
+      value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Conselho Tutelar',
+      value: draft.address.councilRegion?.nome || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Contato',
+      value: councilContact || DEFAULT_NOT_INFORMED,
+    },
+  ];
+};
+
+const buildStepSummaryItem = (
+  field: PublicFormField,
+  value: DynamicAnswerValue
+): ComplaintSummaryItem => {
+  if (field.tipo_campo === 'foto') {
+    return {
+      type: 'photos',
+      label: field.nome,
+      photos: isPhotoAnswer(value) ? value : [],
+      emptyText: DEFAULT_NO_PHOTOS,
+    };
+  }
+
+  return {
+    type: 'text',
+    label: field.nome,
+    value: formatDynamicAnswerValue(field, value),
+  };
 };
 
 export const buildComplaintSummarySections = (
@@ -94,10 +136,9 @@ export const buildComplaintSummarySections = (
     sections.push({
       title: step.titulo,
       description: step.descricao,
-      items: step.campos.map((field) => ({
-        label: field.nome,
-        value: formatDynamicAnswerValue(field, getStepAnswerValue(draft, step, field)),
-      })),
+      items: step.campos.map((field) =>
+        buildStepSummaryItem(field, getStepAnswerValue(draft, step, field))
+      ),
     });
   });
 

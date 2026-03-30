@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './denuncia-content.css';
 
 import { useNavigate } from 'react-router-dom';
+import { LoaderCircle } from 'lucide-react';
 import { useComplaintForm } from '../hooks/use-denuncia-form';
 import { useStepsValidation } from '../hooks/use-step-validation';
 import { useStepsNavigation } from '../hooks/use-steps-navigation';
@@ -17,9 +18,52 @@ import { generatePDF } from '../../../shared/utils/generate-pdf';
 import { ProfessionSelectionStep } from './form/profession-selection-step';
 import { ComplaintStepDefinition, CouncilRegion, PublicForm, PublicProfession } from '../types/denuncia';
 
+const DEFAULT_PROFESSION_ACCENT = '#F4B63C';
+
+const normalizeHexColor = (rawColor?: string | null): string | null => {
+  if (!rawColor) {
+    return null;
+  }
+
+  const trimmed = rawColor.trim();
+  const normalized = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+
+  if (/^#([0-9a-fA-F]{3}){1,2}$/.test(normalized)) {
+    if (normalized.length === 4) {
+      return `#${normalized[1]}${normalized[1]}${normalized[2]}${normalized[2]}${normalized[3]}${normalized[3]}`;
+    }
+
+    return normalized.toUpperCase();
+  }
+
+  return null;
+};
+
+const hexToRgb = (hexColor: string): [number, number, number] => {
+  const normalized = hexColor.replace('#', '');
+  const parsed = Number.parseInt(normalized, 16);
+
+  return [
+    (parsed >> 16) & 255,
+    (parsed >> 8) & 255,
+    parsed & 255,
+  ];
+};
+
+const darkenHexColor = (hexColor: string, amount: number): string => {
+  const [red, green, blue] = hexToRgb(hexColor);
+  const nextChannel = (channel: number) =>
+    Math.max(0, Math.min(255, Math.round(channel * (1 - amount))));
+
+  return `#${[nextChannel(red), nextChannel(green), nextChannel(blue)]
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('')}`.toUpperCase();
+};
+
 export const ComplaintForm: React.FC = () => {
   const navigate = useNavigate();
   const denunciaController = useMemo(() => new DenunciaController(), []);
+  const submitOverlayRef = React.useRef<HTMLDivElement>(null);
 
   const {
     complaint,
@@ -124,12 +168,89 @@ export const ComplaintForm: React.FC = () => {
   const isNextButtonDisabled = isProfessionConfirmed
     ? !stepsValidation[currentStep]
     : false;
+  const isSubmitting = submitState.status === 'loading';
+  const activeProfessionColor =
+    pendingProfession?.cor ||
+    selectedProfession?.cor ||
+    null;
+  const complaintThemeStyle = useMemo<React.CSSProperties>(() => {
+    const accent = normalizeHexColor(activeProfessionColor) ?? DEFAULT_PROFESSION_ACCENT;
+    const [red, green, blue] = hexToRgb(accent);
+
+    return {
+      ['--profession-accent' as string]: accent,
+      ['--profession-accent-rgb' as string]: `${red}, ${green}, ${blue}`,
+      ['--profession-accent-strong' as string]: darkenHexColor(accent, 0.12),
+      ['--primary-color' as string]: accent,
+    };
+  }, [activeProfessionColor]);
+
+  useEffect(() => {
+    if (isSubmitting) {
+      submitOverlayRef.current?.focus();
+    }
+  }, [isSubmitting]);
+
+  const handleCurrentStepValidationChange = React.useCallback(
+    (isValid: boolean) => {
+      updateStepValidation(currentStep, isValid);
+    },
+    [currentStep, updateStepValidation]
+  );
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousPrimaryColor = root.style.getPropertyValue('--primary-color');
+    const previousProfessionAccent = root.style.getPropertyValue('--profession-accent');
+    const previousProfessionAccentRgb = root.style.getPropertyValue('--profession-accent-rgb');
+    const previousProfessionAccentStrong = root.style.getPropertyValue('--profession-accent-strong');
+    const accent = normalizeHexColor(activeProfessionColor);
+
+    if (accent) {
+      const [red, green, blue] = hexToRgb(accent);
+      root.style.setProperty('--primary-color', accent);
+      root.style.setProperty('--profession-accent', accent);
+      root.style.setProperty('--profession-accent-rgb', `${red}, ${green}, ${blue}`);
+      root.style.setProperty('--profession-accent-strong', darkenHexColor(accent, 0.12));
+    } else {
+      root.style.removeProperty('--primary-color');
+      root.style.removeProperty('--profession-accent');
+      root.style.removeProperty('--profession-accent-rgb');
+      root.style.removeProperty('--profession-accent-strong');
+    }
+
+    return () => {
+      if (previousPrimaryColor) {
+        root.style.setProperty('--primary-color', previousPrimaryColor);
+      } else {
+        root.style.removeProperty('--primary-color');
+      }
+
+      if (previousProfessionAccent) {
+        root.style.setProperty('--profession-accent', previousProfessionAccent);
+      } else {
+        root.style.removeProperty('--profession-accent');
+      }
+
+      if (previousProfessionAccentRgb) {
+        root.style.setProperty('--profession-accent-rgb', previousProfessionAccentRgb);
+      } else {
+        root.style.removeProperty('--profession-accent-rgb');
+      }
+
+      if (previousProfessionAccentStrong) {
+        root.style.setProperty('--profession-accent-strong', previousProfessionAccentStrong);
+      } else {
+        root.style.removeProperty('--profession-accent-strong');
+      }
+    };
+  }, [activeProfessionColor]);
 
   const handleFinalStep = async () => {
     setSubmitState({ status: 'loading' });
 
     try {
-      const pdfBlob = generatePDF(complaint);
+      const pdfBlob = await generatePDF(complaint);
       setPdf(pdfBlob);
 
       const protocol = `DEN-${new Date().getFullYear()}-${Math.floor(
@@ -142,7 +263,7 @@ export const ComplaintForm: React.FC = () => {
       setSubmitState(result);
 
       if (result.status === 'success' && result.protocol) {
-        clearStoredData(selectedProfession?.id);
+        await clearStoredData(selectedProfession?.id);
         navigate('/confirmacao-denuncia', {
           state: {
             complaint,
@@ -209,7 +330,7 @@ export const ComplaintForm: React.FC = () => {
     }
   };
 
-  const handleStartDraft = () => {
+  const handleStartDraft = async () => {
     if (!pendingProfession || !pendingForm) {
       return;
     }
@@ -222,7 +343,7 @@ export const ComplaintForm: React.FC = () => {
       return;
     }
 
-    if (hasExistingComplaintData(pendingProfession.id)) {
+    if (await hasExistingComplaintData(pendingProfession.id)) {
       setResumeDraftState({
         profession: pendingProfession,
         form: pendingForm,
@@ -238,37 +359,41 @@ export const ComplaintForm: React.FC = () => {
   };
 
   const handleResumeDraft = () => {
-    if (!resumeDraftState) {
-      return;
-    }
+    void (async () => {
+      if (!resumeDraftState) {
+        return;
+      }
 
-    const storedDraft = getStoredDraft(resumeDraftState.profession.id);
+      const storedDraft = await getStoredDraft(resumeDraftState.profession.id);
 
-    if (storedDraft) {
-      restoreStoredDraft(resumeDraftState.profession, resumeDraftState.form, storedDraft);
-    } else {
-      startNewDraft(resumeDraftState.profession, resumeDraftState.form, {
-        preserveAddress: Boolean(complaint.address.neighborhood?.trim()),
-      });
-    }
+      if (storedDraft) {
+        restoreStoredDraft(resumeDraftState.profession, resumeDraftState.form, storedDraft);
+      } else {
+        startNewDraft(resumeDraftState.profession, resumeDraftState.form, {
+          preserveAddress: Boolean(complaint.address.neighborhood?.trim()),
+        });
+      }
 
-    resetWizardState();
-    setIsProfessionConfirmed(true);
-    setResumeDraftState(null);
+      resetWizardState();
+      setIsProfessionConfirmed(true);
+      setResumeDraftState(null);
+    })();
   };
 
   const handleNewDraft = () => {
-    if (!resumeDraftState) {
-      return;
-    }
+    void (async () => {
+      if (!resumeDraftState) {
+        return;
+      }
 
-    clearStoredData(resumeDraftState.profession.id);
-    startNewDraft(resumeDraftState.profession, resumeDraftState.form, {
-      preserveAddress: Boolean(complaint.address.neighborhood?.trim()),
-    });
-    resetWizardState();
-    setIsProfessionConfirmed(true);
-    setResumeDraftState(null);
+      await clearStoredData(resumeDraftState.profession.id);
+      startNewDraft(resumeDraftState.profession, resumeDraftState.form, {
+        preserveAddress: Boolean(complaint.address.neighborhood?.trim()),
+      });
+      resetWizardState();
+      setIsProfessionConfirmed(true);
+      setResumeDraftState(null);
+    })();
   };
 
   const handleChangeProfession = () => {
@@ -294,9 +419,10 @@ export const ComplaintForm: React.FC = () => {
       {modalVisible && (
         <Modal
           title="Você tem certeza que deseja sair?"
-          primaryLabel="Não! Voltar para onde estava"
-          onPrimary={() => setModalVisible(false)}
-          onSecondary={() => navigate('/')}
+          primaryLabel="Sair mesmo assim"
+          secondayLabel="Não! Voltar para onde estava"
+          onPrimary={() => navigate('/')}
+          onSecondary={() => setModalVisible(false)}
         />
       )}
 
@@ -322,17 +448,13 @@ export const ComplaintForm: React.FC = () => {
         </Header.Right>
       </Header>
 
-      <div className="complaint-form">
-        <br />
-        <br />
-        <br />
-
+      <div className="complaint-form" style={complaintThemeStyle}>
         {!isProfessionConfirmed ? (
           <ProfessionSelectionStep
             professions={publicProfessions}
             selectedProfessionId={selectedProfessionId}
             onSelect={(professionId) => void handleProfessionSelect(professionId)}
-            onContinue={handleStartDraft}
+            onContinue={() => void handleStartDraft()}
             isLoadingProfessions={isLoadingProfessions}
             isLoadingForm={isLoadingForm}
             errorMessage={selectionError}
@@ -348,6 +470,25 @@ export const ComplaintForm: React.FC = () => {
               setError={setError}
             />
             <div className="step-content">
+              {isSubmitting && (
+                <div className="complaint-submit-overlay" role="status" aria-live="polite">
+                  <div
+                    ref={submitOverlayRef}
+                    className="complaint-submit-overlay-card"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="complaint-submit-title"
+                    aria-describedby="complaint-submit-description"
+                    tabIndex={-1}
+                  >
+                    <LoaderCircle size={28} className="complaint-submit-spinner" />
+                    <strong id="complaint-submit-title">Enviando denúncia...</strong>
+                    <p id="complaint-submit-description">
+                      Estamos gerando o PDF e transmitindo as informações com segurança.
+                    </p>
+                  </div>
+                </div>
+              )}
               <StepsRenderer
                 currentStep={currentStep}
                 steps={steps}
@@ -356,7 +497,7 @@ export const ComplaintForm: React.FC = () => {
                 findConselhoByBairro={findConselhoByBairro}
                 onAddressUpdate={updateAddress}
                 onDynamicAnswerUpdate={updateDynamicAnswer}
-                onValidationChange={(isValid) => updateStepValidation(currentStep, isValid)}
+                onValidationChange={handleCurrentStepValidationChange}
               />
               <br />
               <NavigationInferiorControl
@@ -370,7 +511,8 @@ export const ComplaintForm: React.FC = () => {
                   setCurrentStep(newStep);
                 }}
                 handleFinalStep={() => void handleFinalStep()}
-                isNextDisabled={isNextButtonDisabled || submitState.status === 'loading'}
+                isNextDisabled={isNextButtonDisabled || isSubmitting}
+                isSubmitting={isSubmitting}
               />
             </div>
           </>

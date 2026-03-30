@@ -7,13 +7,13 @@ export default defineConfig({
     react(),
     VitePWA({ 
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'favicon-64x64.png', 'apple-touch-icon-180x180.png'],
       devOptions:  {
         enabled: true,
       },
       manifest: {
-        name: 'OdontoGuardião',
-        short_name: 'OdontoGuardião',
+        name: 'ProtegeSaúde',
+        short_name: 'ProtegeSaúde',
         description: 'Plataforma de denúncia para profissionais da Odontologia identificarem e reportarem casos de violência e maus-tratos.',
         theme_color: '#F4B63C',
         display: 'standalone',

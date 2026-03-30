@@ -10,9 +10,9 @@ interface CompartilhaAppComunidadeModalProps {
 export const CompartilhaAppComunidadeModal: React.FC<CompartilhaAppComunidadeModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
-  const shareText = "Junte-se a nós na luta contra maus-tratos e violência. Conheça o OdontoGuardião, um aplicativo que ajuda a identificar e denunciar casos de abuso. Juntos, podemos fazer a diferença! #OdontoGuardiao #ProtecaoInfantil";
+  const shareText = "Junte-se a nós na luta contra maus-tratos e violência. Conheça o ProtegeSaúde, um aplicativo que ajuda a identificar e denunciar casos de abuso. Juntos, podemos fazer a diferença! #ProtegeSaude #ProtecaoInfantil";
 
-  const shareUrl = "https://odontoguardiao.com"; // Substitua pela URL real do seu app
+  const shareUrl = "https://protegesaude.com"; // Substitua pela URL real do seu app
 
   const shareViaTwitter = () => {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
@@ -37,7 +37,7 @@ export const CompartilhaAppComunidadeModal: React.FC<CompartilhaAppComunidadeMod
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>
-        <h2>Compartilhe o OdontoGuardião</h2>
+        <h2>Compartilhe o ProtegeSaúde</h2>
         <p>Ajude a divulgar nossa missão de proteger crianças e adolescentes contra maus-tratos e violência.</p>
 
         <div className="share-stats">

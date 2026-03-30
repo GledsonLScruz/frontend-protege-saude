@@ -27,13 +27,13 @@
 
 /* Estilo quando hover */
 .custom-checkbox:hover input ~ .checkbox-mark {
-  border-color: #F4B63C;
+  border-color: var(--profession-accent, #F4B63C);
 }
 
 /* Estilo quando selecionado */
 .custom-checkbox input:checked ~ .checkbox-mark {
-  background-color: #F4B63C;
-  border-color: #F4B63C;
+  background-color: var(--profession-accent, #F4B63C);
+  border-color: var(--profession-accent, #F4B63C);
 }
 
 /* Checkmark (✓) */

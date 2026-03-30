@@ -17,7 +17,6 @@ export const DenunciaPage: React.FC = () => {
 
   return (
     <div className="report-flow-container">
-      <br />
       <ComplaintForm />
     </div>
   );

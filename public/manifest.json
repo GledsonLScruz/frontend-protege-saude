@@ -1,6 +1,6 @@
 {
-    "name": "Odontoguardião",
-    "short_name": "Odontoguardião",
+    "name": "ProtegeSaúde",
+    "short_name": "ProtegeSaúde",
     "description": "Plataforma de denúncia para profissionais da Odontologia identificarem e reportarem casos de violência e maus-tratos.",
     "start_url": "/",
     "display": "standalone",

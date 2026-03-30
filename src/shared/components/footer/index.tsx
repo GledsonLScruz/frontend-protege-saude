@@ -58,7 +58,7 @@ export const Footer = ({
      
 
       <div className="footer-bottom">
-        <p>&copy; 2025 OdontoGuardião. Todos os direitos reservados.</p>
+        <p>&copy; 2025 ProtegeSaúde. Todos os direitos reservados.</p>
       </div>
     </footer>
   )

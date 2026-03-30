@@ -42,8 +42,12 @@ export const RegisterContent: React.FC = () => {
   return (
     <div className="register-page">
       <div className="app-logo">
-        <div className="logo-initials">OG</div>
-        <div className="logo-full">OdontoGuardião</div>
+        <img
+          className="logo-mark"
+          src="/icon-192x192.png"
+          alt="Icone do ProtegeSaude"
+        />
+        <div className="logo-full">ProtegeSaúde</div>
       </div>
       <div className="register-container">
         <h1>Cadastro</h1>

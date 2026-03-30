@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom"
-import './navigation-inferior-control.css'
-import { Modal } from "../../../inicio/components/modal";
-import React from "react";
+import { useNavigate } from 'react-router-dom';
+import { LoaderCircle } from 'lucide-react';
+import './navigation-inferior-control.css';
+import { Modal } from '../../../inicio/components/modal';
+import React from 'react';
 
 interface NavigationInferiorControlProps {
   totalSteps: number;
@@ -9,6 +10,7 @@ interface NavigationInferiorControlProps {
   setCurrentStep: (step: number) => void;
   handleFinalStep: () => void;
   isNextDisabled?: boolean;
+  isSubmitting?: boolean;
 }
 
 export const NavigationInferiorControl = ({
@@ -16,7 +18,8 @@ export const NavigationInferiorControl = ({
   setCurrentStep,
   totalSteps,
   handleFinalStep,
-  isNextDisabled = false
+  isNextDisabled = false,
+  isSubmitting = false,
 }: NavigationInferiorControlProps) => {
   const navigate = useNavigate();
 
@@ -36,50 +39,61 @@ export const NavigationInferiorControl = ({
   
   return (
     <>
-    { modalVisible && <Modal 
-      title="Você tem certeza que deseja sair?" 
-      primaryLabel="Não! Voltar de onde parei" 
-      // warning="Estou ciente que perderei todas as informações preenchidas"
-      onPrimary={() => setModalVisible(false)}
-      onSecondary={() => navigate('/')}
-    />}
-    <div className="navigation-buttons">
-      {currentStep === 1 && (
-        <button
-          className="button button-secondary"
-          onClick={() => setModalVisible(true)}
-        >
-          Voltar para tela inicial
-        </button>
+      {modalVisible && (
+        <Modal
+          title="Você tem certeza que deseja sair?"
+          primaryLabel="Sair mesmo assim"
+          secondayLabel="Não! Voltar de onde parei"
+          onPrimary={() => navigate('/')}
+          onSecondary={() => setModalVisible(false)}
+        />
       )}
+      <div className="navigation-buttons">
+        {currentStep === 1 && (
+          <button
+            className="button button-secondary"
+            onClick={() => setModalVisible(true)}
+            disabled={isSubmitting}
+          >
+            Voltar para tela inicial
+          </button>
+        )}
 
-      {currentStep > 1 && (
-        <button
-          className="button button-secondary"
-          onClick={handlePrevious}
-        >
-          Voltar
-        </button>
-      )}
+        {currentStep > 1 && (
+          <button
+            className="button button-secondary"
+            onClick={handlePrevious}
+            disabled={isSubmitting}
+          >
+            Voltar
+          </button>
+        )}
 
-      {currentStep < totalSteps ? (
-        <button
-          className="button button-primary"
-          onClick={handleNext}
-          disabled={isNextDisabled}
-        >
-          Próximo
-        </button>
-      ) : (
-        <button
-          className="button button-primary"
-          onClick={handleFinalStep}
-          disabled={isNextDisabled}
-        >
-          Enviar Denúncia
-        </button>
-      )}
-    </div>
+        {currentStep < totalSteps ? (
+          <button
+            className="button button-primary"
+            onClick={handleNext}
+            disabled={isNextDisabled || isSubmitting}
+          >
+            Próximo
+          </button>
+        ) : (
+          <button
+            className="button button-primary navigation-submit-button"
+            onClick={handleFinalStep}
+            disabled={isNextDisabled || isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <LoaderCircle size={18} className="navigation-button-spinner" />
+                Enviando denúncia...
+              </>
+            ) : (
+              'Enviar Denúncia'
+            )}
+          </button>
+        )}
+      </div>
     </>
-  )
-}
+  );
+};

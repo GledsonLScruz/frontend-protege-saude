@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export type StepValidation = Record<number, boolean>;
 
@@ -31,18 +31,24 @@ export const useStepsValidation = (totalSteps: number) => {
     });
   }, [totalSteps]);
 
-  const updateStepValidation = (step: number, isValid: boolean) => {
-    setStepsValidation((prev) => ({
-      ...prev,
-      [step]: isValid,
-    }));
-  };
+  const updateStepValidation = useCallback((step: number, isValid: boolean) => {
+    setStepsValidation((prev) => {
+      if (prev[step] === isValid) {
+        return prev;
+      }
 
-  const resetStepsValidation = () => {
+      return {
+        ...prev,
+        [step]: isValid,
+      };
+    });
+  }, []);
+
+  const resetStepsValidation = useCallback(() => {
     setStepsValidation(buildInitialStepsValidation(totalSteps));
-  };
+  }, [totalSteps]);
 
-  const isStepValid = (step: number) => Boolean(stepsValidation[step]);
+  const isStepValid = useCallback((step: number) => Boolean(stepsValidation[step]), [stepsValidation]);
 
   return {
     stepsValidation,

@@ -41,10 +41,22 @@ export const AddressStep: React.FC<AddressStepProps> = ({
   const [touchedFields, setTouchedFields] = React.useState<TouchedFields>({});
   const addressController = React.useMemo(() => new AddressController(), []);
   const latestAddressRef = React.useRef(address);
+  const onChangeRef = React.useRef(onChange);
+  const findConselhoByBairroRef = React.useRef(findConselhoByBairro);
+  const lastFetchedCepRef = React.useRef('');
+  const lastValidationRef = React.useRef<{ key: string; isValid: boolean } | null>(null);
 
   React.useEffect(() => {
     latestAddressRef.current = address;
   }, [address]);
+
+  React.useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  React.useEffect(() => {
+    findConselhoByBairroRef.current = findConselhoByBairro;
+  }, [findConselhoByBairro]);
 
   const handleBlur = (field: keyof TouchedFields) => {
     setTouchedFields(prev => ({
@@ -55,32 +67,74 @@ export const AddressStep: React.FC<AddressStepProps> = ({
   React.useEffect(() => {
     const validationErrors = validateAddressStep(address);
     const isValid = Object.keys(validationErrors).length === 0;
+    const nextValidationKey = JSON.stringify(validationErrors);
+    const previousValidation = lastValidationRef.current;
 
-    setErrors(validationErrors);
-    onValidationChange?.(isValid);
+    if (
+      !previousValidation ||
+      previousValidation.key !== nextValidationKey ||
+      previousValidation.isValid !== isValid
+    ) {
+      lastValidationRef.current = {
+        key: nextValidationKey,
+        isValid,
+      };
+      setErrors(validationErrors);
+      onValidationChange?.(isValid);
+    }
   }, [address, onValidationChange]);
 
   React.useEffect(() => {
-    if (!!address.cep && address.cep?.length >= 8) {
-      addressController.getAddressByCep(address.cep)
-        .then((addressData) => {
-          if (addressData) {
-            const conselho = findConselhoByBairro(addressData.bairro);
-            onChange({
-              ...latestAddressRef.current,
-              street: addressData.logradouro,
-              neighborhood: addressData.bairro,
-              councilRegion: conselho ? {
-                setor: conselho.setor,
-                nome: conselho.nome,
-                regiao: conselho.regiao || undefined,
-                contato: conselho.contato
-              } : undefined
-            });
-          }
-        });
+    const normalizedCep = address.cep?.replace(/\D/g, '') ?? '';
+
+    if (normalizedCep.length !== 8) {
+      lastFetchedCepRef.current = '';
+      return;
     }
-  }, [address.cep, addressController, findConselhoByBairro, onChange]);
+
+    if (lastFetchedCepRef.current === normalizedCep) {
+      return;
+    }
+
+    lastFetchedCepRef.current = normalizedCep;
+
+    void addressController.getAddressByCep(normalizedCep)
+      .then((addressData) => {
+        if (!addressData) {
+          return;
+        }
+
+        const conselho = findConselhoByBairroRef.current(addressData.bairro);
+        const nextCouncilRegion = conselho ? {
+          setor: conselho.setor,
+          nome: conselho.nome,
+          regiao: conselho.regiao || undefined,
+          contato: conselho.contato
+        } : undefined;
+        const currentAddress = latestAddressRef.current;
+        const hasSameCouncilRegion =
+          currentAddress.councilRegion?.setor === nextCouncilRegion?.setor &&
+          currentAddress.councilRegion?.nome === nextCouncilRegion?.nome &&
+          currentAddress.councilRegion?.regiao === nextCouncilRegion?.regiao &&
+          JSON.stringify(currentAddress.councilRegion?.contato ?? []) ===
+            JSON.stringify(nextCouncilRegion?.contato ?? []);
+
+        if (
+          currentAddress.street === addressData.logradouro &&
+          currentAddress.neighborhood === addressData.bairro &&
+          hasSameCouncilRegion
+        ) {
+          return;
+        }
+
+        onChangeRef.current({
+          ...currentAddress,
+          street: addressData.logradouro,
+          neighborhood: addressData.bairro,
+          councilRegion: nextCouncilRegion
+        });
+      });
+  }, [address.cep, addressController]);
 
   const handleNeighborhoodChange = (selectedNeighborhood: string) => {
     const conselho = findConselhoByBairro(selectedNeighborhood);

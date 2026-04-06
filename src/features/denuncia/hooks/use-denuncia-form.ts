@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ComplaintDraft,
   DynamicAnswers,
@@ -87,9 +87,9 @@ export const useComplaintForm = () => {
     setDynamicAnswers((prev) => sanitizeDynamicAnswers(form, prev));
   };
 
-  const updateAddress = (nextAddress: ComplaintDraft['address']) => {
+  const updateAddress = useCallback((nextAddress: ComplaintDraft['address']) => {
     setAddress(nextAddress);
-  };
+  }, []);
 
   const updateDynamicAnswer = (
     stepId: number,

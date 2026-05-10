@@ -24,12 +24,12 @@
 }
 
 .custom-select-header:hover {
-  border-color: var(--profession-accent, #F4B63C);
+  border-color: var(--profession-accent, #24786B);
 }
 
 .custom-select-header.open {
-  border-color: var(--profession-accent, #F4B63C);
-  box-shadow: 0 0 0 2px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.1);
+  border-color: var(--profession-accent, #24786B);
+  box-shadow: 0 0 0 2px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.1);
 }
 
 .selected-value {
@@ -119,8 +119,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: var(--profession-accent, #F4B63C);
-  box-shadow: 0 0 0 2px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.1);
+  border-color: var(--profession-accent, #24786B);
+  box-shadow: 0 0 0 2px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.1);
 }
 
 .options-container {
@@ -140,8 +140,8 @@
 }
 
 .option.selected {
-  background-color: rgba(var(--profession-accent-rgb, 244, 182, 60), 0.1);
-  color: var(--profession-accent, #F4B63C);
+  background-color: rgba(var(--profession-accent-rgb, 36, 120, 107), 0.1);
+  color: var(--profession-accent, #24786B);
 }
 
 .no-results {

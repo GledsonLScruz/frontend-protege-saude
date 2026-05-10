@@ -15,7 +15,7 @@ export default defineConfig({
         name: 'ProtegeSaúde',
         short_name: 'ProtegeSaúde',
         description: 'Plataforma de denúncia para profissionais da Odontologia identificarem e reportarem casos de violência e maus-tratos.',
-        theme_color: '#F4B63C',
+        theme_color: '#24786B',
         display: 'standalone',
         start_url: '.',
         icons: [

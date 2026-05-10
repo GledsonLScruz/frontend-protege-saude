@@ -1,6 +1,6 @@
 :root {
-  --primary-color: #F4B63C;
-  --primary-dark: #E5A62C;
+  --primary-color: #24786B;
+  --primary-dark: #206A5E;
   --text-color: #333333;
   --background-color: #F5F5F5;
   --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -63,7 +63,7 @@ body {
 .option-item {
   width: 200px;
   height: 200px;
-  background-color: #FBC02D;
+  background-color: #24786B;
   margin: 1rem 0;
   padding: 2rem;
   border-radius: 8px;
@@ -78,9 +78,9 @@ body {
 }
 
 .option-item:hover {
-  color: #F7C440;
+  color: #24786B;
   background-color: #fff;
-  border: 4px solid #F7C440;
+  border: 4px solid #24786B;
 }
 
 .card {
@@ -101,7 +101,7 @@ body {
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  background-color: #FFF9E6;
+  background-color: #E9F6F4;
 }
 
 .card svg {

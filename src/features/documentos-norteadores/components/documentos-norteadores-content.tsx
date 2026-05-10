@@ -13,7 +13,7 @@ import {
 type DownloadStatus = 'downloading' | 'success' | 'error';
 
 const documentosNorteadoresService = new DocumentosNorteadoresService();
-const DEFAULT_PROFESSION_ACCENT = '#F4B63C';
+const DEFAULT_PROFESSION_ACCENT = '#24786B';
 
 const normalizeHexColor = (rawColor?: string | null): string | null => {
   if (!rawColor) {

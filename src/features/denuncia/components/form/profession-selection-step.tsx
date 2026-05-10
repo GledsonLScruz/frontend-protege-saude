@@ -74,6 +74,7 @@ export const ProfessionSelectionStep: React.FC<ProfessionSelectionStepProps> = (
         )}
 
         <button
+          type="button"
           className="profession-selection-action"
           onClick={onContinue}
           disabled={!selectedProfessionId || isLoadingForm || isLoadingProfessions}

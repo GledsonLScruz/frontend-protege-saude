@@ -61,12 +61,12 @@
 }
 
 .login-form input:focus {
-  border-color: #F4B63C;
+  border-color: #24786B;
   outline: none;
 }
 
 .login-button {
-  background-color: #F4B63C;
+  background-color: #24786B;
   color: white;
   border: none;
   padding: 0.75rem;
@@ -76,7 +76,7 @@
 }
 
 .login-button:hover {
-  background-color: #E5A62C;
+  background-color: #206A5E;
 }
 
 .login-button:active {
@@ -97,13 +97,13 @@
 }
 
 .register-link a {
-  color: #F4B63C;
+  color: #24786B;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .register-link a:hover {
-  color: #E5A62C;
+  color: #206A5E;
   text-decoration: underline;
 }
 
@@ -157,10 +157,10 @@
 }
 
 .back-to-initial:hover {
-  color: #F4B63C;
+  color: #24786B;
 }
 
 .forgot-password-link {
-  color: #F4B63C;
+  color: #24786B;
   font-size: 0.9rem;
 }

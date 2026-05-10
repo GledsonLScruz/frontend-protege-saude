@@ -25,7 +25,7 @@ export const SwitchQuestion = ({
         {
           tooltip && (
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 {tooltip}
               </div>

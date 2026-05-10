@@ -3,9 +3,9 @@
 }
 
 .complaint-form {
-  --profession-accent: #F4B63C;
-  --profession-accent-rgb: 244, 182, 60;
-  --profession-accent-strong: #E5A832;
+  --profession-accent: #24786B;
+  --profession-accent-rgb: 36, 120, 107;
+  --profession-accent-strong: #206A5E;
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;

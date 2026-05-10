@@ -41,15 +41,15 @@
   top: 50%;
   width: 5px;
   height: 10px;
-  border: solid var(--profession-accent, var(--primary-color, #F4B63C));
+  border: solid var(--profession-accent, var(--primary-color, #24786B));
   border-width: 0 2px 2px 0;
   transform: translateY(-65%) rotate(45deg) scale(0);
   transition: transform 0.2s ease;
 }
 
 .location-checkboxes input[type="checkbox"]:checked+span::before {
-  border-color: var(--profession-accent, var(--primary-color, #F4B63C));
-  background-color: var(--profession-accent, var(--primary-color, #F4B63C));
+  border-color: var(--profession-accent, var(--primary-color, #24786B));
+  background-color: var(--profession-accent, var(--primary-color, #24786B));
 }
 
 .location-checkboxes input[type="checkbox"]:checked+span::after {
@@ -58,7 +58,7 @@
 }
 
 .location-checkboxes input[type="checkbox"]:focus+span::before {
-  box-shadow: 0 0 0 3px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.2);
 }
 
 @keyframes checkboxSelect {

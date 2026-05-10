@@ -68,12 +68,12 @@
 }
 
 .register-form input:focus {
-  border-color: #F4B63C;
+  border-color: #24786B;
   outline: none;
 }
 
 .register-button {
-  background-color: #F4B63C;
+  background-color: #24786B;
   color: white;
   border: none;
   padding: 0.75rem;
@@ -83,7 +83,7 @@
 }
 
 .register-button:hover {
-  background-color: #E5A62C;
+  background-color: #206A5E;
 }
 
 .register-button:active {
@@ -104,14 +104,14 @@
 }
 
 .login-link a {
-  color: #F4B63C;
+  color: #24786B;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .login-link a:hover {
-  color: #E5A62C;
+  color: #206A5E;
   text-decoration: underline;
 }
 
@@ -126,7 +126,7 @@
 }
 
 .back-to-initial:hover {
-  color: #F4B63C;
+  color: #24786B;
 }
 
 .modal-overlay {
@@ -148,7 +148,7 @@
 }
 
 .modal-button {
-  background-color: #F4B63C;
+  background-color: #24786B;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -159,7 +159,7 @@
 }
 
 .modal-button:hover {
-  background-color: #E5A62C;
+  background-color: #206A5E;
 }
 
 @keyframes fadeInDown {

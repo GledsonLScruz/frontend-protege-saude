@@ -2,7 +2,7 @@
   position: fixed;
   top: 0;
   z-index: 1000;
-  background: var(--primary-color, #F4B63C);
+  background: var(--primary-color, #24786B);
   color: white;
   width: 100%;
 }
@@ -95,7 +95,7 @@
   font-size: 0.75rem;
   padding: 0.125rem 0.375rem;
   border-radius: 10px;
-  border: 2px solid var(--primary-color, #F4B63C);
+  border: 2px solid var(--primary-color, #24786B);
 }
 
 .header-progress {

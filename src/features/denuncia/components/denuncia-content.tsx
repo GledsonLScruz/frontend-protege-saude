@@ -18,7 +18,7 @@ import { generatePDF } from '../../../shared/utils/generate-pdf';
 import { ProfessionSelectionStep } from './form/profession-selection-step';
 import { ComplaintStepDefinition, CouncilRegion, PublicForm, PublicProfession } from '../types/denuncia';
 
-const DEFAULT_PROFESSION_ACCENT = '#F4B63C';
+const DEFAULT_PROFESSION_ACCENT = '#24786B';
 
 const normalizeHexColor = (rawColor?: string | null): string | null => {
   if (!rawColor) {
@@ -441,7 +441,11 @@ export const ComplaintForm: React.FC = () => {
 
         <Header.Right>
           {isProfessionConfirmed && selectedProfession && (
-            <button className="change-profession-button" onClick={handleChangeProfession}>
+            <button
+              type="button"
+              className="change-profession-button"
+              onClick={handleChangeProfession}
+            >
               Trocar profissão
             </button>
           )}

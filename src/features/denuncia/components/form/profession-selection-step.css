@@ -10,13 +10,13 @@
   border-radius: 20px;
   background: linear-gradient(
     180deg,
-    rgba(var(--profession-accent-rgb, 244, 182, 60), 0.12) 0%,
+    rgba(var(--profession-accent-rgb, 36, 120, 107), 0.12) 0%,
     #ffffff 100%
   );
-  border: 1px solid rgba(var(--profession-accent-rgb, 244, 182, 60), 0.28);
+  border: 1px solid rgba(var(--profession-accent-rgb, 36, 120, 107), 0.28);
   box-shadow:
     0 20px 40px rgba(28, 28, 28, 0.08),
-    0 8px 24px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.16);
+    0 8px 24px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.16);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -26,7 +26,7 @@
   width: fit-content;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  background: var(--profession-accent, var(--primary-color, #F4B63C));
+  background: var(--profession-accent, var(--primary-color, #24786B));
   color: #fff;
   font-size: 0.85rem;
   font-weight: 700;
@@ -56,13 +56,13 @@
 .profession-selection-preview {
   padding: 1rem 1.1rem;
   border-radius: 14px;
-  background: rgba(var(--profession-accent-rgb, 244, 182, 60), 0.1);
-  border: 1px solid rgba(var(--profession-accent-rgb, 244, 182, 60), 0.25);
+  background: rgba(var(--profession-accent-rgb, 36, 120, 107), 0.1);
+  border: 1px solid rgba(var(--profession-accent-rgb, 36, 120, 107), 0.25);
 }
 
 .profession-selection-preview h3 {
   margin: 0 0 0.35rem;
-  color: var(--profession-accent-strong, #704800);
+  color: var(--profession-accent-strong, #14544B);
 }
 
 .profession-selection-feedback {
@@ -85,7 +85,7 @@
   gap: 0.6rem;
   border: none;
   border-radius: 14px;
-  background: var(--profession-accent, var(--primary-color, #F4B63C));
+  background: var(--profession-accent, var(--primary-color, #24786B));
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
@@ -95,12 +95,12 @@
 }
 
 .profession-selection-action:hover:not(:disabled) {
-  background: var(--profession-accent-strong, #E5A832);
+  background: var(--profession-accent-strong, #206A5E);
 }
 
 .profession-selection-action:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.22);
+  box-shadow: 0 0 0 3px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.22);
 }
 
 .profession-selection-action:disabled {

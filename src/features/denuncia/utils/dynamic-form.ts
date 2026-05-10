@@ -5,6 +5,8 @@ import {
   PublicForm,
   PublicFormField,
   PublicFormFieldOption,
+  SwitchConditionalAnswer,
+  SwitchFieldPayloadAnswer,
 } from '../types/denuncia';
 
 export const DEFAULT_NOT_INFORMED = 'Não informado';
@@ -29,6 +31,60 @@ export const getFieldStorageKey = (id: number) => String(id);
 
 export const getFieldOptions = (field: PublicFormField): PublicFormFieldOption[] =>
   field.opcoes ?? [];
+
+export const createEmptySwitchConditionalAnswer = (): SwitchConditionalAnswer => ({
+  valor: null,
+  selecionados: [],
+});
+
+export const isSwitchConditionalAnswer = (
+  value: DynamicAnswerValue
+): value is SwitchConditionalAnswer =>
+  Boolean(
+    value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      'valor' in value &&
+      'selecionados' in value &&
+      (((value as SwitchConditionalAnswer).valor === null) ||
+        typeof (value as SwitchConditionalAnswer).valor === 'boolean') &&
+      Array.isArray((value as SwitchConditionalAnswer).selecionados)
+  );
+
+const getAllowedConditionalFieldValues = (field: PublicFormField): string[] =>
+  field.validacoes?.opcoes_condicionais_permitidas ??
+  getFieldOptions(field).map((option) => option.valor);
+
+export const normalizeSwitchConditionalAnswer = (
+  field: PublicFormField,
+  value: DynamicAnswerValue
+): SwitchConditionalAnswer => {
+  const allowedConditionalValues = getAllowedConditionalFieldValues(field);
+
+  if (typeof value === 'boolean') {
+    return {
+      valor: value,
+      selecionados: [],
+    };
+  }
+
+  if (!isSwitchConditionalAnswer(value)) {
+    return createEmptySwitchConditionalAnswer();
+  }
+
+  const normalizedSelectedValues = value.valor
+    ? value.selecionados.filter(
+        (item): item is string =>
+          typeof item === 'string' &&
+          (allowedConditionalValues.length === 0 || allowedConditionalValues.includes(item))
+      )
+    : [];
+
+  return {
+    valor: value.valor,
+    selecionados: normalizedSelectedValues,
+  };
+};
 
 export const getAllowedFieldValues = (field: PublicFormField): string[] =>
   field.validacoes?.opcoes_permitidas ??
@@ -65,6 +121,9 @@ export const formatDateValue = (value: string): string => {
 
 export const isDynamicAnswerEmpty = (value: DynamicAnswerValue): boolean => {
   if (value === undefined || value === null) return true;
+  if (isSwitchConditionalAnswer(value)) {
+    return value.valor === null;
+  }
   if (typeof value === 'string') return value.trim().length === 0;
   if (Array.isArray(value)) return value.length === 0;
   return false;
@@ -149,6 +208,14 @@ export const sanitizeDynamicAnswers = (
           return fieldAccumulator;
         }
 
+        if (field.tipo_campo === 'switch') {
+          fieldAccumulator[getFieldStorageKey(field.id)] = normalizeSwitchConditionalAnswer(
+            field,
+            answer
+          );
+          return fieldAccumulator;
+        }
+
         fieldAccumulator[getFieldStorageKey(field.id)] = answer;
         return fieldAccumulator;
       },
@@ -213,10 +280,27 @@ export const validateDynamicField = (
     }
 
     case 'switch':
-      if (field.obrigatorio && typeof value !== 'boolean') {
-        return 'Este campo é obrigatório.';
+      {
+        const switchValue = normalizeSwitchConditionalAnswer(field, value);
+        const allowedConditionalValues = getAllowedConditionalFieldValues(field);
+
+        if (field.obrigatorio && typeof switchValue.valor !== 'boolean') {
+          return 'Este campo é obrigatório.';
+        }
+
+        if (
+          switchValue.valor === true &&
+          switchValue.selecionados.some(
+            (item) =>
+              allowedConditionalValues.length > 0 &&
+              !allowedConditionalValues.includes(item)
+          )
+        ) {
+          return 'Selecione apenas opções válidas.';
+        }
+
+        return undefined;
       }
-      return undefined;
 
     case 'select':
     case 'radio':
@@ -292,7 +376,27 @@ export const formatDynamicAnswerValue = (
 
   switch (field.tipo_campo) {
     case 'switch':
-      return value === true ? 'Sim' : 'Não';
+      {
+        const switchValue = normalizeSwitchConditionalAnswer(field, value);
+
+        if (switchValue.valor === null) {
+          return DEFAULT_NOT_INFORMED;
+        }
+
+        if (switchValue.valor !== true) {
+          return 'Não';
+        }
+
+        if (switchValue.selecionados.length === 0) {
+          return 'Sim';
+        }
+
+        const selectedLabels = switchValue.selecionados
+          .map((item) => getFieldOptionLabel(field, item))
+          .join(', ');
+
+        return `Sim: ${selectedLabels}`;
+      }
 
     case 'select':
     case 'radio':
@@ -325,4 +429,20 @@ export const formatDynamicAnswerValue = (
     default:
       return String(value).trim() || DEFAULT_NOT_INFORMED;
   }
+};
+
+export const serializeSwitchFieldAnswer = (
+  field: PublicFormField,
+  value: DynamicAnswerValue
+): SwitchFieldPayloadAnswer => {
+  const normalizedValue = normalizeSwitchConditionalAnswer(field, value);
+
+  return {
+    campo_id: field.id,
+    tipo_campo: 'switch',
+    valor: normalizedValue.valor,
+    ...(normalizedValue.valor === true && normalizedValue.selecionados.length > 0
+      ? { opcoes_selecionadas: normalizedValue.selecionados }
+      : {}),
+  };
 };

@@ -105,13 +105,13 @@ main {
 
 .cta-button.outline {
   background-color: transparent;
-  border: 2px solid #FBC02D;
-  color: #FBC02D;
+  border: 2px solid #24786B;
+  color: #24786B;
 }
 
 .cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(244, 182, 60, 0.2);
+  box-shadow: 0 4px 6px rgba(36, 120, 107, 0.2);
 }
 
 .cta-button:active {
@@ -188,7 +188,7 @@ main {
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #FBC02D;
+    background-color: #24786B;
     flex-direction: column;
     padding: 1rem;
     gap: 1rem;

@@ -16,6 +16,7 @@ import {
   getFieldOptions,
   getFieldStorageKey,
   isPhotoAnswer,
+  normalizeSwitchConditionalAnswer,
   normalizeCep,
   validateDynamicField,
 } from '../../utils/dynamic-form';
@@ -187,6 +188,7 @@ export const DynamicFormStep: React.FC<DynamicFormStepProps> = ({
     const fieldError = selectionErrors[fieldKey] ?? validationErrors[fieldKey];
     const isTouched = touchedFields[fieldKey];
     const showError = Boolean(isTouched && fieldError);
+    const fieldHint = field.dica?.trim();
 
     switch (field.tipo_campo) {
       case 'texto':
@@ -212,7 +214,7 @@ export const DynamicFormStep: React.FC<DynamicFormStepProps> = ({
                 ? '00000-000'
                 : field.tipo_campo === 'numero'
                   ? 'Digite um número'
-                  : 'Digite sua resposta'
+                  : fieldHint || 'Digite sua resposta'
             }
             className={showError ? 'dynamic-input-error' : ''}
           />
@@ -229,7 +231,7 @@ export const DynamicFormStep: React.FC<DynamicFormStepProps> = ({
               onChange(step.id, field.id, event.target.value);
             }}
             onBlur={() => markTouched(field.id)}
-            placeholder="Digite sua resposta"
+            placeholder={fieldHint || 'Digite sua resposta'}
             rows={5}
             className={showError ? 'dynamic-input-error' : ''}
           />
@@ -320,24 +322,59 @@ export const DynamicFormStep: React.FC<DynamicFormStepProps> = ({
       }
 
       case 'switch': {
-        const checked = getFieldValue(field.id) === true;
+        const switchValue = normalizeSwitchConditionalAnswer(field, getFieldValue(field.id));
+        const showConditionalOptions =
+          switchValue.valor === true && getFieldOptions(field).length > 0;
+        const checked = switchValue.valor === true;
 
         return (
-          <div className="dynamic-switch-card">
-            <span className="dynamic-switch-label">{checked ? 'Sim' : 'Não'}</span>
-            <label className="dynamic-switch">
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={(event) => {
-                  markTouched(field.id);
-                  clearSelectionError(field.id);
-                  onChange(step.id, field.id, event.target.checked);
-                }}
-                onBlur={() => markTouched(field.id)}
-              />
-              <span className="dynamic-switch-slider"></span>
-            </label>
+          <div className="dynamic-switch-field">
+            <div className="dynamic-switch-card">
+              <span className="dynamic-switch-label">{checked ? 'Sim' : 'Não'}</span>
+              <label className="dynamic-switch">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(event) => {
+                    markTouched(field.id);
+                    clearSelectionError(field.id);
+                    onChange(step.id, field.id, {
+                      valor: event.target.checked,
+                      selecionados: event.target.checked ? switchValue.selecionados : [],
+                    });
+                  }}
+                  onBlur={() => markTouched(field.id)}
+                />
+                <span className="dynamic-switch-slider"></span>
+              </label>
+            </div>
+
+            {showConditionalOptions && (
+              <div className="dynamic-switch-conditional-group">
+                <p className="dynamic-switch-conditional-title">Selecione:</p>
+                <div className="dynamic-options-list dynamic-checkbox-list dynamic-switch-conditional-list">
+                  {getFieldOptions(field).map((option) => (
+                    <CustomCheckbox
+                      key={option.valor}
+                      checked={switchValue.selecionados.includes(option.valor)}
+                      label={option.label}
+                      onChange={(checked) => {
+                        markTouched(field.id);
+                        clearSelectionError(field.id);
+                        const selecionados = checked
+                          ? [...switchValue.selecionados, option.valor]
+                          : switchValue.selecionados.filter((item) => item !== option.valor);
+
+                        onChange(step.id, field.id, {
+                          valor: true,
+                          selecionados,
+                        });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       }
@@ -412,6 +449,8 @@ export const DynamicFormStep: React.FC<DynamicFormStepProps> = ({
           const isTouched = touchedFields[fieldKey];
           const showError = Boolean(isTouched && fieldError);
           const allowedValues = getAllowedFieldValues(field);
+          const shouldShowHintIcon =
+            Boolean(field.dica) && field.tipo_campo !== 'texto' && field.tipo_campo !== 'textarea';
 
           return (
             <div key={field.id} className="dynamic-form-group">
@@ -424,9 +463,9 @@ export const DynamicFormStep: React.FC<DynamicFormStepProps> = ({
                   {field.tipo_campo === 'bairro' && allowedValues.length > 0 && (
                     <span className="dynamic-field-badge">Bairro validado</span>
                   )}
-                  {field.dica && (
+                  {shouldShowHintIcon && (
                     <div className="dynamic-tooltip-container" aria-label={`Dica: ${field.dica}`}>
-                      <span className="dynamic-info-icon">i</span>
+                      <span className="dynamic-info-icon">?</span>
                       <div className="dynamic-tooltip">{field.dica}</div>
                     </div>
                   )}

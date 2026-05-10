@@ -91,7 +91,7 @@ export const VisibleInjuriesStep: React.FC<VisibleInjuriesStepProps> = ({ caseDe
           <div className="form-card-header">
             <span className="question-text">Hematoma?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Acúmulo de sangue em um tecido devido à lesão de vasos sanguíneos.
               </div>
@@ -121,7 +121,7 @@ export const VisibleInjuriesStep: React.FC<VisibleInjuriesStepProps> = ({ caseDe
           <div className="form-card-header">
             <span className="question-text">Abrasão?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Ferida superficial, normalmente apenas com perda de pele, resultante de uma queda, ou de um arrastão pelo chão, ou por outra superfície.
               </div>
@@ -151,7 +151,7 @@ export const VisibleInjuriesStep: React.FC<VisibleInjuriesStepProps> = ({ caseDe
           <div className="form-card-header">
             <span className="question-text">Laceração?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Ruptura nos tecidos moles do corpo.
               </div>
@@ -181,7 +181,7 @@ export const VisibleInjuriesStep: React.FC<VisibleInjuriesStepProps> = ({ caseDe
           <div className="form-card-header">
             <span className="question-text">Queimadura?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Toda lesão provocada pelo contato direto com alguma fonte de calor ou frio, produtos químicos, corrente elétrica, radiação, ou mesmo alguns animais e plantas (como larvas, água-viva, urtiga), entre outros.
               </div>

@@ -14,12 +14,12 @@
 }
 
 .navigation-buttons .button-primary {
-  background-color: var(--profession-accent, #F4B63C);
+  background-color: var(--profession-accent, #24786B);
   color: white;
 }
 
 .navigation-buttons .button-primary:hover {
-  background-color: var(--profession-accent-strong, #E5A832);
+  background-color: var(--profession-accent-strong, #206A5E);
 }
 
 .navigation-buttons .button-secondary {

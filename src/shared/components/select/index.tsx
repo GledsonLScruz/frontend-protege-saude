@@ -86,6 +86,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           <div className="selected-value">
             <span className="selected-value-label">{selectedOption.label}</span>
             <button
+              type="button"
               className="clear-button"
               onClick={clearSelection}
               aria-label="Limpar seleção"

@@ -28,7 +28,7 @@ export const NegligenciaPsicologicaStep: React.FC<NegligenciaPsicologicaStepProp
           <div className="form-card-header">
             <span className="question-text">Sinais de Negligência Familiar?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Observa-se criança ou adolescente com sinais de omissão de cuidados básicos dos adultos responsáveis pela criança, 
                 não provendo as necessidades básicas sendo exemplos, presença de um alto índice de cárie, 

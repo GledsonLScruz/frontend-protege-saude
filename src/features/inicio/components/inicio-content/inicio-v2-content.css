@@ -4,7 +4,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #F4B63C, #FDEBBF);
+  background: linear-gradient(135deg, #24786B, #DDF2EE);
   padding: 1rem;
 }
 
@@ -90,7 +90,7 @@
 }
 
 .start-button {
-  background-color: #F4B63C;
+  background-color: #24786B;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -100,7 +100,7 @@
 }
 
 .start-button:hover {
-  background-color: #E5A62C;
+  background-color: #206A5E;
 }
 
 .modal-overlay {
@@ -154,7 +154,7 @@
 }
 
 .modal-buttons button:last-child {
-  background-color: #F4B63C;
+  background-color: #24786B;
   color: white;
 }
 

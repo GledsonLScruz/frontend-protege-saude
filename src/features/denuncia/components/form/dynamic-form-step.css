@@ -68,7 +68,7 @@
   width: 22px;
   height: 22px;
   flex: 0 0 22px;
-  background-color: var(--profession-accent, #F4B63C);
+  background-color: var(--profession-accent, #24786B);
   color: #fff;
   border-radius: 50%;
   font-size: 13px;
@@ -79,7 +79,7 @@
 }
 
 .dynamic-info-icon:hover {
-  background-color: var(--profession-accent-strong, #E5A832);
+  background-color: var(--profession-accent-strong, #206A5E);
   transform: translateY(-1px);
 }
 
@@ -91,7 +91,7 @@
   width: 250px;
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  background-color: var(--profession-accent, #F4B63C);
+  background-color: var(--profession-accent, #24786B);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
@@ -112,8 +112,8 @@
 .dynamic-field-badge {
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: #fff4d8;
-  color: #8a5c00;
+  background: #E9F6F4;
+  color: #14544B;
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -142,8 +142,8 @@
 .dynamic-form-group input[type="date"]:focus,
 .dynamic-form-group textarea:focus {
   outline: none;
-  border-color: var(--profession-accent, #F4B63C);
-  box-shadow: 0 0 0 2px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.1);
+  border-color: var(--profession-accent, #24786B);
+  box-shadow: 0 0 0 2px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.1);
 }
 
 .dynamic-input-error {
@@ -226,13 +226,13 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--profession-accent, #F4B63C);
+  background: var(--profession-accent, #24786B);
   transform: scale(0);
   transition: transform 0.2s ease;
 }
 
 .dynamic-radio-option input:checked + span::before {
-  border-color: var(--profession-accent, #F4B63C);
+  border-color: var(--profession-accent, #24786B);
 }
 
 .dynamic-radio-option input:checked + span::after {
@@ -248,7 +248,7 @@
 }
 
 .dynamic-radio-option:has(input:focus-visible) {
-  background: rgba(var(--profession-accent-rgb, 244, 182, 60), 0.08);
+  background: rgba(var(--profession-accent-rgb, 36, 120, 107), 0.08);
 }
 
 .dynamic-switch-card {
@@ -304,11 +304,76 @@
 }
 
 .dynamic-switch input:checked + .dynamic-switch-slider {
-  background: var(--profession-accent, #F4B63C);
+  background: var(--profession-accent, #24786B);
 }
 
 .dynamic-switch input:checked + .dynamic-switch-slider::before {
   transform: translateX(22px);
+}
+
+.dynamic-switch-field {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dynamic-switch-conditional-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.25rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(var(--profession-accent-rgb, 36, 120, 107), 0.45);
+  border-radius: 1rem;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dynamic-switch-conditional-title {
+  margin: 0;
+  color: #667085;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.dynamic-switch-conditional-list {
+  gap: 1rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.dynamic-switch-conditional-list .custom-checkbox {
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 88px;
+  padding: 0 1.5rem;
+  border: 1px solid #f2f4f7;
+  border-radius: 1rem;
+  background: #fcfcfd;
+}
+
+.dynamic-switch-conditional-list .custom-checkbox:hover,
+.dynamic-switch-conditional-list .custom-checkbox:has(input:focus-visible) {
+  background: #f9fafb;
+}
+
+.dynamic-switch-conditional-list .checkbox-mark {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+  align-self: center;
+  border-width: 3px;
+  border-color: #d0d5dd;
+}
+
+.dynamic-switch-conditional-list .checkbox-label {
+  align-self: center;
+  margin-left: 1rem;
+  color: #3a3a3a;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .dynamic-photo-field {
@@ -329,7 +394,7 @@
   min-height: 42px;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  background: var(--profession-accent, #F4B63C);
+  background: var(--profession-accent, #24786B);
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -411,6 +476,15 @@
 @media (max-width: 640px) {
   .dynamic-switch-card {
     gap: 1rem;
+  }
+
+  .dynamic-switch-conditional-group {
+    padding: 1.25rem;
+  }
+
+  .dynamic-switch-conditional-list .custom-checkbox {
+    min-height: 76px;
+    padding: 0 1rem;
   }
 
   .dynamic-tooltip {

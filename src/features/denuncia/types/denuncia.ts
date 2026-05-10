@@ -94,6 +94,9 @@ export interface PublicFormFieldValidations {
   obrigatorio: boolean;
   aceita_multiplos: boolean;
   opcoes_permitidas?: string[];
+  opcoes_condicionais_quando?: 'sim';
+  opcoes_condicionais_permitidas?: string[];
+  opcoes_condicionais_aceita_multiplos?: boolean;
   max_fotos?: number | null;
 }
 
@@ -139,11 +142,24 @@ export interface ComplaintPhoto {
   dataUrl: string;
 }
 
+export interface SwitchConditionalAnswer {
+  valor: boolean | null;
+  selecionados: string[];
+}
+
+export interface SwitchFieldPayloadAnswer {
+  campo_id: number;
+  tipo_campo: 'switch';
+  valor: boolean | null;
+  opcoes_selecionadas?: string[];
+}
+
 export type DynamicAnswerValue =
   | string
   | boolean
   | string[]
   | ComplaintPhoto[]
+  | SwitchConditionalAnswer
   | null
   | undefined;
 

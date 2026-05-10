@@ -157,7 +157,7 @@ export const AddressStep: React.FC<AddressStepProps> = ({
         <div className="address-form-item">
           <label>CEP</label>
           <div className="tooltip-container-base">
-            <div className="info-icon-base"><span>i</span></div>
+            <div className="info-icon-base"><span>?</span></div>
             <div className="tooltip-base">
               Caso a criança ou adolescente resida em outro município que não seja Campina Grande, deve-se informar o CEP do endereço onde a violência ocorreu, em Campina Grande.
             </div>

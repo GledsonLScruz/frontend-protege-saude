@@ -141,7 +141,7 @@
 }
 
 .radio-option input[type="radio"]:checked+label::before {
-  border-color: var(--profession-accent, var(--primary-color, #F4B63C));
+  border-color: var(--profession-accent, var(--primary-color, #24786B));
 }
 
 .radio-option label::after {
@@ -150,7 +150,7 @@
   left: 13px;
   width: 10px;
   height: 10px;
-  background: var(--profession-accent, var(--primary-color, #F4B63C));
+  background: var(--profession-accent, var(--primary-color, #24786B));
   border-radius: 50%;
   transform: scale(0);
   transition: transform 0.2s ease;
@@ -162,7 +162,7 @@
 }
 
 .radio-option input[type="radio"]:focus+label::before {
-  box-shadow: 0 0 0 4px rgba(var(--profession-accent-rgb, 244, 182, 60), 0.2);
+  box-shadow: 0 0 0 4px rgba(var(--profession-accent-rgb, 36, 120, 107), 0.2);
 }
 
 @keyframes radioSelect {

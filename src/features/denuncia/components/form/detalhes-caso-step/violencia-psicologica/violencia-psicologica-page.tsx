@@ -28,7 +28,7 @@ export const ViolenciaPsicologicaStep: React.FC<ViolenciaPsicologicaStepProps> =
           <div className="form-card-header">
             <span className="question-text">Sinais de Violência Psicológica?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Criança ou adolescente com comportamento retraído, nervoso ou assustado de forma incomum.
               </div>
@@ -58,7 +58,7 @@ export const ViolenciaPsicologicaStep: React.FC<ViolenciaPsicologicaStepProps> =
           <div className="form-card-header">
             <span className="question-text">Queimadura?</span>
             <div className="tooltip-container">
-              <span className="info-icon">i</span>
+              <span className="info-icon">?</span>
               <div className="tooltip">
                 Toda lesão provocada pelo contato direto com alguma fonte de calor ou frio, produtos químicos, corrente elétrica, radiação, ou mesmo alguns animais e plantas (como larvas, água-viva, urtiga), entre outros.
               </div>

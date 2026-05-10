@@ -21,7 +21,7 @@
 .progress-bar {
   height: 100%;
   width: 14.28%; /* Representa 1/7 do progresso */
-  background-color: var(--profession-accent, #F4B63C);
+  background-color: var(--profession-accent, #24786B);
   transition: width 0.3s ease;
   border-radius: 4px;
 }
@@ -67,8 +67,8 @@
 
 /* Estado ativo do indicador */
 .step-indicator.active {
-  background-color: var(--profession-accent, #F4B63C);
-  border-color: var(--profession-accent, #F4B63C);
+  background-color: var(--profession-accent, #24786B);
+  border-color: var(--profession-accent, #24786B);
   color: white;
   transform: scale(1.08);
 }
@@ -81,8 +81,8 @@
 
 /* Estado completo do indicador */
 .step-indicator.completed {
-  background-color: var(--profession-accent, #F4B63C);
-  border-color: var(--profession-accent, #F4B63C);
+  background-color: var(--profession-accent, #24786B);
+  border-color: var(--profession-accent, #24786B);
   color: white;
 }
 
@@ -118,7 +118,7 @@
 
 /* Estado hover do indicador */
 .step-indicator-wrapper:hover .step-indicator:not(.active):not(.disabled) {
-  border-color: var(--profession-accent, #F4B63C);
+  border-color: var(--profession-accent, #24786B);
   transform: scale(1.1);
 }
 

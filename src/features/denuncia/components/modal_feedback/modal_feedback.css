@@ -70,12 +70,12 @@
 }
 
 .button-primary {
-  background-color: var(--profession-accent, var(--primary-color, #F4B63C));
+  background-color: var(--profession-accent, var(--primary-color, #24786B));
   color: white;
 }
 
 .button-primary:hover {
-  background-color: var(--profession-accent-strong, #E5A832);
+  background-color: var(--profession-accent-strong, #206A5E);
 }
 
 .button-secondary {

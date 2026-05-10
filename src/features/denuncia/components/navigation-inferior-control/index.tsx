@@ -51,6 +51,7 @@ export const NavigationInferiorControl = ({
       <div className="navigation-buttons">
         {currentStep === 1 && (
           <button
+            type="button"
             className="button button-secondary"
             onClick={() => setModalVisible(true)}
             disabled={isSubmitting}
@@ -61,6 +62,7 @@ export const NavigationInferiorControl = ({
 
         {currentStep > 1 && (
           <button
+            type="button"
             className="button button-secondary"
             onClick={handlePrevious}
             disabled={isSubmitting}
@@ -71,6 +73,7 @@ export const NavigationInferiorControl = ({
 
         {currentStep < totalSteps ? (
           <button
+            type="button"
             className="button button-primary"
             onClick={handleNext}
             disabled={isNextDisabled || isSubmitting}
@@ -79,6 +82,7 @@ export const NavigationInferiorControl = ({
           </button>
         ) : (
           <button
+            type="button"
             className="button button-primary navigation-submit-button"
             onClick={handleFinalStep}
             disabled={isNextDisabled || isSubmitting}

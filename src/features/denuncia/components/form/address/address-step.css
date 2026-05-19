@@ -24,9 +24,45 @@
   font-size: 2rem;
 }
 
+.address-validated-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.address-validated-grid input:disabled {
+  color: var(--text-color, #333);
+  background-color: #f6f8f7;
+  opacity: 1;
+}
+
+.address-success-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  color: var(--profession-accent, var(--primary-color));
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.address-inline-spinner {
+  animation: address-spin 0.8s linear infinite;
+}
+
+@keyframes address-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 640px) {
   .address-step h2 {
     font-size: 1.5rem;
+  }
+
+  .address-validated-grid {
+    grid-template-columns: 1fr;
   }
 }
 

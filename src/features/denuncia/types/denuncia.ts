@@ -1,16 +1,20 @@
 export type CouncilRegionName = 'norte' | 'sul' | 'leste' | 'oeste';
 
 export interface CouncilRegion {
-  setor: string;
+  id?: number;
+  setor?: string;
   nome: string;
   regiao?: CouncilRegionName;
-  contato: string[];
+  contato?: string[];
   bairros?: string[];
 }
 
 export interface Address {
   hasNoInformation: boolean;
   cep?: string;
+  validatedCep?: string;
+  state?: string;
+  city?: string;
   street?: string;
   number?: string;
   neighborhood?: string;
@@ -172,6 +176,44 @@ export interface ComplaintDraft {
   dynamicAnswers: DynamicAnswers;
 }
 
+export type CepValidationErrorCode =
+  | 'CEP_INVALIDO'
+  | 'CEP_NAO_ENCONTRADO'
+  | 'BAIRRO_NAO_IDENTIFICADO'
+  | 'BAIRRO_FORA_DO_CATALOGO'
+  | 'CONSELHO_NAO_CADASTRADO'
+  | 'ERRO_CONSULTA_CEP';
+
+export interface ValidatedCepAddress {
+  cep: string;
+  estado: string;
+  cidade: string;
+  bairro: string;
+  logradouro?: string;
+  rua?: string;
+}
+
+export interface ValidatedCepCouncil {
+  id: number;
+  nome: string;
+}
+
+export interface CepValidationSuccessResponse {
+  podeProsseguir: true;
+  endereco: ValidatedCepAddress;
+  conselho: ValidatedCepCouncil;
+}
+
+export interface CepValidationBlockedResponse {
+  podeProsseguir: false;
+  codigo: CepValidationErrorCode;
+  mensagem: string;
+}
+
+export type CepValidationResponse =
+  | CepValidationSuccessResponse
+  | CepValidationBlockedResponse;
+
 export interface ComplaintStepDefinition {
   number: number;
   label: string;
@@ -180,6 +222,9 @@ export interface ComplaintStepDefinition {
 export const createEmptyAddress = (): Address => ({
   hasNoInformation: false,
   cep: '',
+  validatedCep: '',
+  state: '',
+  city: '',
   street: '',
   number: '',
   neighborhood: '',

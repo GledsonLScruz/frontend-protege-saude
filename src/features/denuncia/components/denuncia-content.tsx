@@ -16,7 +16,7 @@ import { Header } from '../../../shared/components/header/components';
 import { Modal } from '../../inicio/components/modal';
 import { generatePDF } from '../../../shared/utils/generate-pdf';
 import { ProfessionSelectionStep } from './form/profession-selection-step';
-import { ComplaintStepDefinition, CouncilRegion, PublicForm, PublicProfession } from '../types/denuncia';
+import { ComplaintStepDefinition, PublicForm, PublicProfession } from '../types/denuncia';
 
 const DEFAULT_PROFESSION_ACCENT = '#24786B';
 
@@ -89,7 +89,6 @@ export const ComplaintForm: React.FC = () => {
   const [selectedProfessionId, setSelectedProfessionId] = useState('');
   const [pendingProfession, setPendingProfession] = useState<PublicProfession | null>(null);
   const [pendingForm, setPendingForm] = useState<PublicForm | null>(null);
-  const [councilRegions, setCouncilRegions] = useState<CouncilRegion[]>([]);
   const [isProfessionConfirmed, setIsProfessionConfirmed] = useState(false);
   const [resumeDraftState, setResumeDraftState] = useState<{
     profession: PublicProfession;
@@ -127,15 +126,9 @@ export const ComplaintForm: React.FC = () => {
     step: -2,
   });
 
-  const neighborhoods = useMemo(
-    () => denunciaController.getAllBairros(councilRegions),
-    [councilRegions, denunciaController]
-  );
-
-  const findConselhoByBairro = React.useCallback(
-    (bairro: string) =>
-      denunciaController.findConselhoByBairro(bairro, councilRegions),
-    [councilRegions, denunciaController]
+  const validateCep = React.useCallback(
+    (cep: string) => denunciaController.validateCep(cep),
+    [denunciaController]
   );
 
   useEffect(() => {
@@ -144,13 +137,8 @@ export const ComplaintForm: React.FC = () => {
       setSelectionError(null);
 
       try {
-        const [professions, councils] = await Promise.all([
-          denunciaController.listPublicProfessions(),
-          denunciaController.getCampinaGrandeCouncils(),
-        ]);
-
+        const professions = await denunciaController.listPublicProfessions();
         setPublicProfessions(professions);
-        setCouncilRegions(councils);
       } catch (error) {
         setSelectionError(
           error instanceof Error
@@ -497,8 +485,7 @@ export const ComplaintForm: React.FC = () => {
                 currentStep={currentStep}
                 steps={steps}
                 complaint={complaint}
-                neighborhoods={neighborhoods}
-                findConselhoByBairro={findConselhoByBairro}
+                validateCep={validateCep}
                 onAddressUpdate={updateAddress}
                 onDynamicAnswerUpdate={updateDynamicAnswer}
                 onValidationChange={handleCurrentStepValidationChange}

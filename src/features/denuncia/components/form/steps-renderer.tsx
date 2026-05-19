@@ -1,8 +1,8 @@
 import React from 'react';
 import {
+  CepValidationResponse,
   ComplaintDraft,
   ComplaintStepDefinition,
-  CouncilRegion,
   DynamicAnswerValue,
 } from '../../types/denuncia';
 import { AddressStep } from '../form/address/address-step';
@@ -13,8 +13,7 @@ interface StepsRendererProps {
   currentStep: number;
   steps: ComplaintStepDefinition[];
   complaint: ComplaintDraft;
-  neighborhoods: string[];
-  findConselhoByBairro: (bairro: string) => CouncilRegion | undefined;
+  validateCep: (cep: string) => Promise<CepValidationResponse>;
   onAddressUpdate: (address: ComplaintDraft['address']) => void;
   onDynamicAnswerUpdate: (
     stepId: number,
@@ -28,8 +27,7 @@ export const StepsRenderer: React.FC<StepsRendererProps> = ({
   currentStep,
   steps,
   complaint,
-  neighborhoods,
-  findConselhoByBairro,
+  validateCep,
   onAddressUpdate,
   onDynamicAnswerUpdate,
   onValidationChange
@@ -42,8 +40,7 @@ export const StepsRenderer: React.FC<StepsRendererProps> = ({
     return (
       <AddressStep
         address={complaint.address}
-        neighborhoods={neighborhoods}
-        findConselhoByBairro={findConselhoByBairro}
+        validateCep={validateCep}
         onChange={onAddressUpdate}
         onValidationChange={onValidationChange}
       />

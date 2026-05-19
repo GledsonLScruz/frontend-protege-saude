@@ -43,6 +43,9 @@ const getStepAnswerValue = (
 
 const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] => {
   const councilContact = draft.address.councilRegion?.contato?.join(' | ');
+  const cityState = [draft.address.city, draft.address.state]
+    .filter((value) => value?.trim())
+    .join(' / ');
 
   if (draft.address.hasNoInformation) {
   return [
@@ -50,6 +53,11 @@ const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] =
       type: 'text',
       label: 'Bairro aproximado',
       value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Cidade/UF',
+      value: cityState || DEFAULT_NOT_INFORMED,
     },
     {
       type: 'text',
@@ -84,6 +92,11 @@ const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] =
       type: 'text',
       label: 'Bairro',
       value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
+    },
+    {
+      type: 'text',
+      label: 'Cidade/UF',
+      value: cityState || DEFAULT_NOT_INFORMED,
     },
     {
       type: 'text',

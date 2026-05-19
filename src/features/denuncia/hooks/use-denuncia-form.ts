@@ -35,11 +35,25 @@ const hasAddressData = (address: ComplaintDraft['address']): boolean =>
   Boolean(
     address.hasNoInformation ||
       address.cep?.trim() ||
+      address.state?.trim() ||
+      address.city?.trim() ||
       address.street?.trim() ||
       address.number?.trim() ||
       address.neighborhood?.trim() ||
       address.councilRegion
   );
+
+const clearPersistedCepValidation = (
+  address: ComplaintDraft['address'] | undefined
+): ComplaintDraft['address'] => ({
+  ...createEmptyAddress(),
+  ...(address ?? {}),
+  validatedCep: '',
+  state: '',
+  city: '',
+  neighborhood: '',
+  councilRegion: undefined,
+});
 
 const hasDynamicAnswersData = (dynamicAnswers: DynamicAnswers): boolean =>
   Object.values(dynamicAnswers).some((stepAnswers) =>
@@ -169,7 +183,7 @@ export const useComplaintForm = () => {
   ) => {
     setSelectedProfession(profession);
     setLoadedFormState(form);
-    setAddress(storedDraft.address ?? createEmptyAddress());
+    setAddress(clearPersistedCepValidation(storedDraft.address));
     setDynamicAnswers(sanitizeDynamicAnswers(form, storedDraft.dynamicAnswers ?? {}));
     setIsPersistenceEnabled(true);
   };

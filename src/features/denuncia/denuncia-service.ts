@@ -1,8 +1,7 @@
 import axios from 'axios';
 import {
+  CepValidationResponse,
   ComplaintDraft,
-  CouncilRegion,
-  CouncilRegionName,
   PublicForm,
   PublicProfession,
 } from './types/denuncia';
@@ -16,16 +15,6 @@ interface PublicProfessionApiResponse {
   data_criacao?: string;
   data_update?: string;
   data_delete?: string | null;
-}
-
-interface CouncilTutelarCityResponse {
-  cidade: string;
-  conselhosRegionais?: Array<{
-    setor: string;
-    nome: string;
-    contato: string[];
-    bairros: string[];
-  }>;
 }
 
 interface SubmitComplaintResponse {
@@ -86,17 +75,6 @@ const mapProfession = (
   dataDelete: profession.data_delete ?? null,
 });
 
-const inferCouncilRegion = (label: string): CouncilRegionName | undefined => {
-  const normalizedLabel = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-
-  if (normalizedLabel.includes('norte')) return 'norte';
-  if (normalizedLabel.includes('sul')) return 'sul';
-  if (normalizedLabel.includes('leste')) return 'leste';
-  if (normalizedLabel.includes('oeste')) return 'oeste';
-
-  return undefined;
-};
-
 const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (axios.isAxiosError(error)) {
     const apiMessage =
@@ -156,39 +134,35 @@ export class DenunciaService {
     }
   }
 
-  async getCampinaGrandeCouncils(): Promise<CouncilRegion[]> {
+  async validateCep(cep: string): Promise<CepValidationResponse> {
     try {
-      const response = await axios.get<CouncilTutelarCityResponse>(
-        `${this.API_URL}/conselhos-tutelares/cidade/${encodeURIComponent('Campina Grande')}`
+      const response = await axios.get<CepValidationResponse>(
+        `${this.API_URL}/denuncia/validar-cep/${encodeURIComponent(cep)}`
       );
 
-      return (response.data.conselhosRegionais ?? []).map((regional) => ({
-        setor: regional.setor,
-        nome: regional.nome,
-        contato: regional.contato ?? [],
-        bairros: regional.bairros ?? [],
-        regiao: inferCouncilRegion(`${regional.setor} ${regional.nome}`),
-      }));
+      return response.data;
     } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data;
+
+        if (
+          data &&
+          typeof data === 'object' &&
+          'podeProsseguir' in data &&
+          data.podeProsseguir === false
+        ) {
+          return data as CepValidationResponse;
+        }
+      }
+
       throw new Error(
         getApiErrorMessage(
           error,
-          'Não foi possível carregar os bairros e conselhos tutelares.'
+          'Não foi possível validar o CEP informado.'
         )
       );
     }
   }
-
-  getAllBairros = (conselhosRegionais: CouncilRegion[]): string[] =>
-    [...new Set(conselhosRegionais.flatMap((conselho) => conselho.bairros ?? []))].sort((a, b) =>
-      a.localeCompare(b, 'pt-BR')
-    );
-
-  findConselhoByBairro = (
-    bairro: string,
-    conselhosRegionais: CouncilRegion[]
-  ): CouncilRegion | undefined =>
-    conselhosRegionais.find((conselho) => (conselho.bairros ?? []).includes(bairro));
 
   async submitComplaint(
     complaint: ComplaintDraft,
@@ -204,6 +178,15 @@ export class DenunciaService {
     formData.append('protocolo', protocol);
     formData.append('profissao_id', String(professionId));
     formData.append('regiao', complaint.address.councilRegion?.regiao || '');
+    formData.append('cep', complaint.address.validatedCep || complaint.address.cep?.replace(/\D/g, '') || '');
+    formData.append('estado', complaint.address.state || '');
+    formData.append('cidade', complaint.address.city || '');
+    formData.append('bairro', complaint.address.neighborhood || '');
+
+    if (complaint.address.councilRegion?.id) {
+      formData.append('conselho_id', String(complaint.address.councilRegion.id));
+    }
+
     formData.append('pdf', pdf, `denuncia_${protocol}.pdf`);
 
     try {

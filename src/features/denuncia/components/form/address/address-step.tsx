@@ -1,49 +1,43 @@
 import React from 'react';
+import { LoaderCircle } from 'lucide-react';
 
-import { Address, CouncilRegion } from '../../../types/denuncia';
-import { AddressController } from './address-controller';
-import { validateAddressStep } from './address-step-validation';
-import { CustomSelect } from '../../../../../shared/components/select';
+import { Address, CepValidationResponse } from '../../../types/denuncia';
+import { AddressValidationErrors, validateAddressStep } from './address-step-validation';
 import { formatarCEP } from '../../../../../shared/utils/string-utils';
 
 import './address-step.css';
-
-interface ValidationErrors {
-  cep?: string;
-  street?: string;
-  number?: string;
-  neighborhood?: string;
-}
 
 interface TouchedFields {
   cep?: boolean;
   street?: boolean;
   number?: boolean;
-  neighborhood?: boolean;
 }
 
 interface AddressStepProps {
   address: Address;
   onChange: (address: Address) => void;
   onValidationChange?: (isValid: boolean) => void;
-  neighborhoods: string[];
-  findConselhoByBairro: (bairro: string) => CouncilRegion | undefined;
+  validateCep: (cep: string) => Promise<CepValidationResponse>;
 }
 
 export const AddressStep: React.FC<AddressStepProps> = ({
   address,
   onChange,
   onValidationChange,
-  neighborhoods,
-  findConselhoByBairro,
+  validateCep,
 }) => {
-  const [errors, setErrors] = React.useState<ValidationErrors>({});
+  const [errors, setErrors] = React.useState<AddressValidationErrors>({});
   const [touchedFields, setTouchedFields] = React.useState<TouchedFields>({});
-  const addressController = React.useMemo(() => new AddressController(), []);
+  const [isValidatingCep, setIsValidatingCep] = React.useState(false);
+  const [cepFeedback, setCepFeedback] = React.useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
   const latestAddressRef = React.useRef(address);
   const onChangeRef = React.useRef(onChange);
-  const findConselhoByBairroRef = React.useRef(findConselhoByBairro);
-  const lastFetchedCepRef = React.useRef('');
+  const validateCepRef = React.useRef(validateCep);
+  const lastRequestedCepRef = React.useRef('');
+  const activeRequestRef = React.useRef(0);
   const lastValidationRef = React.useRef<{ key: string; isValid: boolean } | null>(null);
 
   React.useEffect(() => {
@@ -55,8 +49,8 @@ export const AddressStep: React.FC<AddressStepProps> = ({
   }, [onChange]);
 
   React.useEffect(() => {
-    findConselhoByBairroRef.current = findConselhoByBairro;
-  }, [findConselhoByBairro]);
+    validateCepRef.current = validateCep;
+  }, [validateCep]);
 
   const handleBlur = (field: keyof TouchedFields) => {
     setTouchedFields(prev => ({
@@ -64,8 +58,48 @@ export const AddressStep: React.FC<AddressStepProps> = ({
       [field]: true
     }));
   };
+
+  const clearValidatedLocation = React.useCallback((currentAddress: Address): Address => ({
+    ...currentAddress,
+    validatedCep: '',
+    state: '',
+    city: '',
+    neighborhood: '',
+    councilRegion: undefined,
+  }), []);
+
+  const handleCepChange = (value: string) => {
+    const formattedCep = formatarCEP(value);
+    const normalizedCep = formattedCep.replace(/\D/g, '');
+    const nextAddress =
+      normalizedCep === address.validatedCep
+        ? {
+            ...address,
+            cep: formattedCep,
+          }
+        : clearValidatedLocation({
+            ...address,
+            cep: formattedCep,
+          });
+
+    lastRequestedCepRef.current = '';
+    activeRequestRef.current += 1;
+    latestAddressRef.current = nextAddress;
+    setCepFeedback(null);
+    onChange(nextAddress);
+  };
+
   React.useEffect(() => {
-    const validationErrors = validateAddressStep(address);
+    const validationErrors: AddressValidationErrors = validateAddressStep(address);
+
+    if (isValidatingCep) {
+      validationErrors.cep = 'Validando CEP...';
+    }
+
+    if (cepFeedback?.type === 'error') {
+      validationErrors.cep = cepFeedback.message;
+    }
+
     const isValid = Object.keys(validationErrors).length === 0;
     const nextValidationKey = JSON.stringify(validationErrors);
     const previousValidation = lastValidationRef.current;
@@ -82,74 +116,90 @@ export const AddressStep: React.FC<AddressStepProps> = ({
       setErrors(validationErrors);
       onValidationChange?.(isValid);
     }
-  }, [address, onValidationChange]);
+  }, [address, cepFeedback, isValidatingCep, onValidationChange]);
 
   React.useEffect(() => {
     const normalizedCep = address.cep?.replace(/\D/g, '') ?? '';
 
     if (normalizedCep.length !== 8) {
-      lastFetchedCepRef.current = '';
+      lastRequestedCepRef.current = '';
+      activeRequestRef.current += 1;
       return;
     }
 
-    if (lastFetchedCepRef.current === normalizedCep) {
+    if (address.validatedCep === normalizedCep || lastRequestedCepRef.current === normalizedCep) {
       return;
     }
 
-    lastFetchedCepRef.current = normalizedCep;
+    lastRequestedCepRef.current = normalizedCep;
+    const requestId = activeRequestRef.current + 1;
+    activeRequestRef.current = requestId;
+    setIsValidatingCep(true);
+    setCepFeedback(null);
 
-    void addressController.getAddressByCep(normalizedCep)
-      .then((addressData) => {
-        if (!addressData) {
-          return;
-        }
-
-        const conselho = findConselhoByBairroRef.current(addressData.bairro);
-        const nextCouncilRegion = conselho ? {
-          setor: conselho.setor,
-          nome: conselho.nome,
-          regiao: conselho.regiao || undefined,
-          contato: conselho.contato
-        } : undefined;
+    void validateCepRef.current(normalizedCep)
+      .then((result) => {
         const currentAddress = latestAddressRef.current;
-        const hasSameCouncilRegion =
-          currentAddress.councilRegion?.setor === nextCouncilRegion?.setor &&
-          currentAddress.councilRegion?.nome === nextCouncilRegion?.nome &&
-          currentAddress.councilRegion?.regiao === nextCouncilRegion?.regiao &&
-          JSON.stringify(currentAddress.councilRegion?.contato ?? []) ===
-            JSON.stringify(nextCouncilRegion?.contato ?? []);
+        const currentCep = currentAddress.cep?.replace(/\D/g, '') ?? '';
 
-        if (
-          currentAddress.street === addressData.logradouro &&
-          currentAddress.neighborhood === addressData.bairro &&
-          hasSameCouncilRegion
-        ) {
+        if (activeRequestRef.current !== requestId || currentCep !== normalizedCep) {
           return;
         }
+
+        if (!result.podeProsseguir) {
+          onChangeRef.current(clearValidatedLocation(currentAddress));
+          setCepFeedback({
+            type: 'error',
+            message: result.mensagem,
+          });
+          return;
+        }
+
+        const street = result.endereco.logradouro?.trim() || result.endereco.rua?.trim() || '';
 
         onChangeRef.current({
           ...currentAddress,
-          street: addressData.logradouro,
-          neighborhood: addressData.bairro,
-          councilRegion: nextCouncilRegion
+          cep: formatarCEP(result.endereco.cep),
+          validatedCep: normalizedCep,
+          state: result.endereco.estado,
+          city: result.endereco.cidade,
+          street,
+          neighborhood: result.endereco.bairro,
+          councilRegion: {
+            id: result.conselho.id,
+            nome: result.conselho.nome,
+            contato: [],
+          },
         });
+        setCepFeedback({
+          type: 'success',
+          message: 'CEP validado com sucesso.',
+        });
+      })
+      .catch((error) => {
+        const currentAddress = latestAddressRef.current;
+        const currentCep = currentAddress.cep?.replace(/\D/g, '') ?? '';
+
+        if (activeRequestRef.current !== requestId || currentCep !== normalizedCep) {
+          return;
+        }
+
+        onChangeRef.current(clearValidatedLocation(currentAddress));
+        setCepFeedback({
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Não foi possível validar o CEP informado.',
+        });
+      })
+      .finally(() => {
+        if (activeRequestRef.current === requestId) {
+          setIsValidatingCep(false);
+        }
       });
-  }, [address.cep, addressController]);
+  }, [address.cep, address.validatedCep, clearValidatedLocation]);
 
-  const handleNeighborhoodChange = (selectedNeighborhood: string) => {
-    const conselho = findConselhoByBairro(selectedNeighborhood);
-
-    onChange({
-      ...address,
-      neighborhood: selectedNeighborhood,
-      councilRegion: conselho ? {
-        setor: conselho.setor,
-        nome: conselho.nome,
-        contato: conselho.contato,
-        regiao: conselho.regiao || undefined
-      } : undefined
-    });
-  };
+  const shouldShowCepMessage = Boolean(
+    cepFeedback || isValidatingCep || (touchedFields.cep && errors.cep)
+  );
 
   return (
     <div className="address-step">
@@ -166,11 +216,19 @@ export const AddressStep: React.FC<AddressStepProps> = ({
         <input
           type="text"
           value={address.cep || ''}
-          onChange={(e) => onChange({ ...address, cep: formatarCEP(e.target.value) })}
+          onChange={(e) => handleCepChange(e.target.value)}
           onBlur={() => handleBlur('cep')}
           placeholder="58000-000"
+          inputMode="numeric"
         />
-        {touchedFields.cep && errors.cep && <span className="error-message">{errors.cep}</span>}
+        {shouldShowCepMessage && (
+          <span
+            className={cepFeedback?.type === 'success' ? 'address-success-message' : 'error-message'}
+          >
+            {isValidatingCep && <LoaderCircle size={14} className="address-inline-spinner" />}
+            {isValidatingCep ? 'Validando CEP...' : cepFeedback?.message || errors.cep}
+          </span>
+        )}
       </div>
 
       <div className="form-group">
@@ -199,17 +257,31 @@ export const AddressStep: React.FC<AddressStepProps> = ({
         {touchedFields.number && errors.number && <span className="error-message">{errors.number}</span>}
       </div>
 
-      <div className="form-group">
-        <CustomSelect
-          label="Bairro"
-          value={address.neighborhood || ''}
-          onChange={handleNeighborhoodChange}
-          options={neighborhoods}
-          onBlur={() => handleBlur('neighborhood')}
-          error={touchedFields.neighborhood && !!errors.neighborhood}
-          placeholder="Selecione um bairro"
-        />
-        {touchedFields.neighborhood && errors.neighborhood && <span className="error-message">{errors.neighborhood}</span>}
+      <div className="address-validated-grid" aria-live="polite">
+        <div className="form-group">
+          <label>Estado</label>
+          <input type="text" value={address.state || ''} placeholder="Aguardando CEP validado" disabled />
+        </div>
+
+        <div className="form-group">
+          <label>Cidade</label>
+          <input type="text" value={address.city || ''} placeholder="Aguardando CEP validado" disabled />
+        </div>
+
+        <div className="form-group">
+          <label>Bairro</label>
+          <input type="text" value={address.neighborhood || ''} placeholder="Aguardando CEP validado" disabled />
+        </div>
+
+        <div className="form-group">
+          <label>Conselho Tutelar</label>
+          <input
+            type="text"
+            value={address.councilRegion?.nome || ''}
+            placeholder="Aguardando CEP validado"
+            disabled
+          />
+        </div>
       </div>
     </div>
   );

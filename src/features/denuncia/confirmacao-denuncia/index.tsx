@@ -96,7 +96,7 @@ export const ConfirmacaoDenuncia = () => {
         <div className="contact-info">
           Em caso de dúvidas, entre em contato com o Conselho Tutelar da sua região:<br />
           <strong>{state.complaint.address?.councilRegion?.nome || "Não identificado"}</strong><br />
-          Telefone: {state.complaint.address?.councilRegion?.contato || "Não identificado"}
+          Telefone: {state.complaint.address?.councilRegion?.contato?.join(' | ') || "Não identificado"}
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { DenunciaService } from './denuncia-service';
 import {
+  CepValidationResponse,
   ComplaintDraft,
-  CouncilRegion,
   PublicForm,
   PublicProfession,
 } from './types/denuncia';
@@ -27,8 +27,8 @@ export class DenunciaController {
     return this.service.getPublicForm(professionId);
   }
 
-  async getCampinaGrandeCouncils(): Promise<CouncilRegion[]> {
-    return this.service.getCampinaGrandeCouncils();
+  async validateCep(cep: string): Promise<CepValidationResponse> {
+    return this.service.validateCep(cep);
   }
 
   async submitDenuncia(
@@ -50,11 +50,4 @@ export class DenunciaController {
     }
   }
 
-  getAllBairros = (conselhosRegionais: CouncilRegion[]): string[] =>
-    this.service.getAllBairros(conselhosRegionais);
-
-  findConselhoByBairro = (
-    bairro: string,
-    conselhosRegionais: CouncilRegion[]
-  ): CouncilRegion | undefined => this.service.findConselhoByBairro(bairro, conselhosRegionais);
 }

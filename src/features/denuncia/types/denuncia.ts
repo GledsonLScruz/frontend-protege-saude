@@ -1,6 +1,6 @@
-export type CouncilRegionName = 'norte' | 'sul' | 'leste' | 'oeste';
+type CouncilRegionName = 'norte' | 'sul' | 'leste' | 'oeste';
 
-export interface CouncilRegion {
+interface CouncilRegion {
   id?: number;
   setor?: string;
   nome: string;
@@ -21,50 +21,6 @@ export interface Address {
   councilRegion?: CouncilRegion;
 }
 
-export interface VictimData {
-  name: string;
-  birthDate: string;
-  gender: 'male' | 'female' | 'other';
-}
-
-export enum BodyPart {
-  'Cabeça' = 'Cabeça',
-  Face = 'Face',
-  'Pescoço' = 'Pescoço',
-  Outro = 'Outro',
-}
-
-export type InjuryLocation = {
-  [key in BodyPart]: boolean;
-};
-
-export type InjuryAgressionLocation = {
-  [key in BodyPart | 'Outro']: boolean;
-};
-
-export interface CaseDetails {
-  hasAggressionSigns: boolean;
-  hasEyeInjury: boolean;
-  hasBruises: boolean;
-  bruisesLocation?: InjuryLocation;
-  hasAbrasion: boolean;
-  abrasionLocation?: InjuryLocation;
-  hasLaceration: boolean;
-  lacerationLocation?: InjuryLocation;
-  hasBurns: boolean;
-  burnsLocation?: InjuryLocation;
-  hasBiteMarks: boolean;
-  biteMarksLocation?: InjuryLocation;
-  neglectSigns: boolean;
-  psychologicalViolenceSigns: boolean;
-}
-
-export interface AdditionalInfo {
-  extraInformation?: string;
-  victimReport?: string;
-  guardianVersion?: string;
-}
-
 export interface PublicProfession {
   id: number;
   nome: string;
@@ -76,7 +32,7 @@ export interface PublicProfession {
   dataDelete?: string | null;
 }
 
-export type PublicFormFieldType =
+type PublicFormFieldType =
   | 'texto'
   | 'textarea'
   | 'numero'
@@ -94,7 +50,7 @@ export interface PublicFormFieldOption {
   label: string;
 }
 
-export interface PublicFormFieldValidations {
+interface PublicFormFieldValidations {
   obrigatorio: boolean;
   aceita_multiplos: boolean;
   opcoes_permitidas?: string[];
@@ -151,13 +107,6 @@ export interface SwitchConditionalAnswer {
   selecionados: string[];
 }
 
-export interface SwitchFieldPayloadAnswer {
-  campo_id: number;
-  tipo_campo: 'switch';
-  valor: boolean | null;
-  opcoes_selecionadas?: string[];
-}
-
 export type DynamicAnswerValue =
   | string
   | boolean
@@ -176,7 +125,7 @@ export interface ComplaintDraft {
   dynamicAnswers: DynamicAnswers;
 }
 
-export type CepValidationErrorCode =
+type CepValidationErrorCode =
   | 'CEP_INVALIDO'
   | 'CEP_NAO_ENCONTRADO'
   | 'BAIRRO_NAO_IDENTIFICADO'
@@ -184,7 +133,7 @@ export type CepValidationErrorCode =
   | 'CONSELHO_NAO_CADASTRADO'
   | 'ERRO_CONSULTA_CEP';
 
-export interface ValidatedCepAddress {
+interface ValidatedCepAddress {
   cep: string;
   estado: string;
   cidade: string;
@@ -193,18 +142,18 @@ export interface ValidatedCepAddress {
   rua?: string;
 }
 
-export interface ValidatedCepCouncil {
+interface ValidatedCepCouncil {
   id: number;
   nome: string;
 }
 
-export interface CepValidationSuccessResponse {
+interface CepValidationSuccessResponse {
   podeProsseguir: true;
   endereco: ValidatedCepAddress;
   conselho: ValidatedCepCouncil;
 }
 
-export interface CepValidationBlockedResponse {
+interface CepValidationBlockedResponse {
   podeProsseguir: false;
   codigo: CepValidationErrorCode;
   mensagem: string;
@@ -229,11 +178,4 @@ export const createEmptyAddress = (): Address => ({
   number: '',
   neighborhood: '',
   councilRegion: undefined,
-});
-
-export const createEmptyComplaintDraft = (): ComplaintDraft => ({
-  selectedProfession: null,
-  loadedForm: null,
-  address: createEmptyAddress(),
-  dynamicAnswers: {},
 });

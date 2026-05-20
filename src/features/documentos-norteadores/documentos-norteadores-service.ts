@@ -24,7 +24,7 @@ interface ProfissaoApiResponse {
   data_delete: string | null;
 }
 
-export interface DocumentoFocusPoint {
+interface DocumentoFocusPoint {
   title: string;
   page?: number;
 }

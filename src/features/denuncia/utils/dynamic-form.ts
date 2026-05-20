@@ -6,11 +6,10 @@ import {
   PublicFormField,
   PublicFormFieldOption,
   SwitchConditionalAnswer,
-  SwitchFieldPayloadAnswer,
 } from '../types/denuncia';
 
 export const DEFAULT_NOT_INFORMED = 'Não informado';
-export const DEFAULT_NOT_APPLICABLE = 'Não se aplica';
+const DEFAULT_NOT_APPLICABLE = 'Não se aplica';
 export const DEFAULT_NO_PHOTOS = 'Nenhuma foto selecionada.';
 
 const getDateParts = (value: string): [number, number, number] | null => {
@@ -32,12 +31,12 @@ export const getFieldStorageKey = (id: number) => String(id);
 export const getFieldOptions = (field: PublicFormField): PublicFormFieldOption[] =>
   field.opcoes ?? [];
 
-export const createEmptySwitchConditionalAnswer = (): SwitchConditionalAnswer => ({
+const createEmptySwitchConditionalAnswer = (): SwitchConditionalAnswer => ({
   valor: null,
   selecionados: [],
 });
 
-export const isSwitchConditionalAnswer = (
+const isSwitchConditionalAnswer = (
   value: DynamicAnswerValue
 ): value is SwitchConditionalAnswer =>
   Boolean(
@@ -92,10 +91,10 @@ export const getAllowedFieldValues = (field: PublicFormField): string[] =>
 
 export const normalizeCep = (value: string): string => value.replace(/\D/g, '');
 
-export const isBirthDateField = (field: PublicFormField): boolean =>
+const isBirthDateField = (field: PublicFormField): boolean =>
   /nasc/i.test(`${field.nome} ${field.dica ?? ''}`);
 
-export const isValidDateValue = (value: string): boolean => {
+const isValidDateValue = (value: string): boolean => {
   const parts = getDateParts(value);
   if (!parts) return false;
 
@@ -109,7 +108,7 @@ export const isValidDateValue = (value: string): boolean => {
   );
 };
 
-export const formatDateValue = (value: string): string => {
+const formatDateValue = (value: string): string => {
   const parts = getDateParts(value);
   if (!parts || !isValidDateValue(value)) {
     return DEFAULT_NOT_INFORMED;
@@ -354,7 +353,7 @@ export const validateDynamicField = (
   }
 };
 
-export const getFieldOptionLabel = (
+const getFieldOptionLabel = (
   field: PublicFormField,
   optionValue: string
 ): string => {
@@ -429,20 +428,4 @@ export const formatDynamicAnswerValue = (
     default:
       return String(value).trim() || DEFAULT_NOT_INFORMED;
   }
-};
-
-export const serializeSwitchFieldAnswer = (
-  field: PublicFormField,
-  value: DynamicAnswerValue
-): SwitchFieldPayloadAnswer => {
-  const normalizedValue = normalizeSwitchConditionalAnswer(field, value);
-
-  return {
-    campo_id: field.id,
-    tipo_campo: 'switch',
-    valor: normalizedValue.valor,
-    ...(normalizedValue.valor === true && normalizedValue.selecionados.length > 0
-      ? { opcoes_selecionadas: normalizedValue.selecionados }
-      : {}),
-  };
 };

@@ -10,7 +10,7 @@ export interface AddressValidationErrors {
   councilRegion?: string;
 }
 
-export const ADDRESS_VALIDATION_MESSAGES = {
+const ADDRESS_VALIDATION_MESSAGES = {
   REQUIRED_CEP: 'CEP é obrigatório',
   INVALID_CEP: 'CEP inválido',
   UNVALIDATED_CEP: 'Valide o CEP antes de continuar',
@@ -57,9 +57,4 @@ export const validateAddressStep = (address: Address): AddressValidationErrors =
   }
 
   return errors;
-};
-
-export const isAddressValid = (address: Address): boolean => {
-  const errors = validateAddressStep(address);
-  return Object.keys(errors).length === 0;
 };

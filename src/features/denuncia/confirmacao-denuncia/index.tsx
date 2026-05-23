@@ -69,7 +69,7 @@ export const ConfirmacaoDenuncia = () => {
         </p>
 
         <p className="message">
-          O Conselho Tutelar responsável já foi notificado e tomará as providências necessárias.
+          Sua denúncia foi encaminhada e as providências necessárias serão tomadas.
         </p>
 
         <div className="buttons-container">
@@ -91,13 +91,6 @@ export const ConfirmacaoDenuncia = () => {
           </button>
         </div>
 
-        <div className="divider"></div>
-
-        <div className="contact-info">
-          Em caso de dúvidas, entre em contato com o Conselho Tutelar da sua região:<br />
-          <strong>{state.complaint.address?.councilRegion?.nome || "Não identificado"}</strong><br />
-          Telefone: {state.complaint.address?.councilRegion?.contato?.join(' | ') || "Não identificado"}
-        </div>
       </div>
 
       {showModal && (

@@ -42,34 +42,29 @@ const getStepAnswerValue = (
   draft.dynamicAnswers[getFieldStorageKey(step.id)]?.[getFieldStorageKey(field.id)];
 
 const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] => {
-  const councilContact = draft.address.councilRegion?.contato?.join(' | ');
   const cityState = [draft.address.city, draft.address.state]
     .filter((value) => value?.trim())
-    .join(' / ');
+    .join('/');
+  const councilName = draft.address.councilRegion?.nome?.trim() || DEFAULT_NOT_INFORMED;
 
   if (draft.address.hasNoInformation) {
-  return [
-    {
-      type: 'text',
-      label: 'Bairro aproximado',
-      value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
-    },
-    {
-      type: 'text',
-      label: 'Cidade/UF',
-      value: cityState || DEFAULT_NOT_INFORMED,
-    },
-    {
-      type: 'text',
-      label: 'Conselho Tutelar',
-      value: draft.address.councilRegion?.nome || DEFAULT_NOT_INFORMED,
-    },
-    {
-      type: 'text',
-      label: 'Contato',
-      value: councilContact || DEFAULT_NOT_INFORMED,
-    },
-  ];
+    return [
+      {
+        type: 'text',
+        label: 'Bairro aproximado',
+        value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
+      },
+      {
+        type: 'text',
+        label: 'Cidade/UF',
+        value: cityState || DEFAULT_NOT_INFORMED,
+      },
+      {
+        type: 'text',
+        label: 'Conselho Tutelar',
+        value: councilName,
+      },
+    ];
   }
 
   return [
@@ -101,12 +96,7 @@ const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] =
     {
       type: 'text',
       label: 'Conselho Tutelar',
-      value: draft.address.councilRegion?.nome || DEFAULT_NOT_INFORMED,
-    },
-    {
-      type: 'text',
-      label: 'Contato',
-      value: councilContact || DEFAULT_NOT_INFORMED,
+      value: councilName,
     },
   ];
 };

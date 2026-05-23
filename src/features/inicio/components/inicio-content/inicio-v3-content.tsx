@@ -58,7 +58,7 @@ export const InicioV3Content = () => {
         
       </main>
       <FAQ />
-      <Footer pageTitle='ProtegeSaúde' pageDescription='Plataforma dedicada ao combate à violência infantojuvenil através do olhar atento dos profissionais da Odontologia.'/>
+      <Footer pageTitle='ProtegeSaúde' pageDescription='Plataforma dedicada ao combate à violência infantojuvenil através do olhar atento dos profissionais da saúde.'/>
     
       {showModal && (
         <div className="feedback-modal-overlay">

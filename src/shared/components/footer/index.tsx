@@ -38,21 +38,12 @@ export const Footer = ({
         </div>
 
         <div className="footer-section">
-          <h4>Conselhos Tutelares</h4>
-          <ul>
-            <li>C.T. Norte: <a href="tel:832017-0062">(83) 2017-0062</a> / <a href="tel:832017-0125">2017-0125</a></li>
-            <li>C.T. Sul: <a href="tel:832017-0059">(83) 2017-0059</a> / <a href="tel:832017-0122">2017-0122</a></li>
-            <li>C.T. Leste: <a href="tel:832017-0061">(83) 2017-0061</a> / <a href="tel:832017-0124">2017-0124</a></li>
-            <li>C.T. Oeste: <a href="tel:832017-0060">(83) 2017-0060</a> / <a href="tel:832017-0123">2017-0123</a></li>
-          </ul>
-        </div>
-        <div className="footer-section">
           <h4>Parcerias</h4>
           <div className="parcerias">
             <img src={ufcg} width={80} height={75}/>
             <img src={uepb} width={200} height={70}/>
           </div>
-      </div>
+        </div>
       </div>
 
      

@@ -19,8 +19,7 @@ const ADDRESS_VALIDATION_MESSAGES = {
   REQUIRED_NUMBER: 'Número é obrigatório',
   REQUIRED_CITY: 'Cidade é obrigatória',
   REQUIRED_STATE: 'Estado é obrigatório',
-  REQUIRED_NEIGHBORHOOD: 'Bairro é obrigatório',
-  REQUIRED_COUNCIL: 'Conselho Tutelar é obrigatório'
+  REQUIRED_NEIGHBORHOOD: 'Bairro é obrigatório'
 } as const;
 
 export const validateAddressStep = (address: Address): AddressValidationErrors => {
@@ -51,9 +50,6 @@ export const validateAddressStep = (address: Address): AddressValidationErrors =
   }
   if (!address.neighborhood?.trim()) {
     errors.neighborhood = ADDRESS_VALIDATION_MESSAGES.REQUIRED_NEIGHBORHOOD;
-  }
-  if (!address.councilRegion?.nome?.trim()) {
-    errors.councilRegion = ADDRESS_VALIDATION_MESSAGES.REQUIRED_COUNCIL;
   }
 
   return errors;

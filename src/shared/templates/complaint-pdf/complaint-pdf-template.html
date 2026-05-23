@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório de Denúncia</title>
+    <style>
+      {{styles}}
+    </style>
+  </head>
+  <body>
+    <article class="complaint-report" aria-label="Relatório de denúncia">
+      <header class="complaint-report__header">
+        <div>
+          <p class="complaint-report__eyebrow">ProtegeSaúde</p>
+          <h1>Relatório de Denúncia</h1>
+        </div>
+      </header>
+
+      <section class="complaint-report__summary" aria-label="Resumo da denúncia">
+        <div>
+          <span>Profissão</span>
+          <strong>{{professionName}}</strong>
+        </div>
+        <div>
+          <span>Gerado em</span>
+          <strong>{{generatedAt}}</strong>
+        </div>
+      </section>
+
+      <div class="complaint-report__sections">
+        {{sections}}
+      </div>
+
+      <footer class="complaint-report__footer">
+        Powered by ProtegeSaúde
+      </footer>
+    </article>
+  </body>
+</html>

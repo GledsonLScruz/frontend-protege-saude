@@ -1,266 +1,262 @@
 import jsPDF from 'jspdf';
-import { UserOptions } from 'jspdf-autotable';
-import {
-  ComplaintSummaryPhotoItem,
-  buildComplaintSummarySections,
-} from '../../features/denuncia/utils/complaint-summary';
-import { ComplaintDraft, ComplaintPhoto } from '../../features/denuncia/types/denuncia';
+import { ComplaintDraft } from '../../features/denuncia/types/denuncia';
+import { buildComplaintPdfHtml } from '../templates/complaint-pdf/complaint-pdf-template';
 
-type AutoTableDoc = jsPDF & {
-  autoTable: (options: UserOptions) => void;
-  lastAutoTable: {
-    finalY: number;
-  };
-};
+const A4_WIDTH_PT = 595.28;
+const A4_WIDTH_PX = 794;
+const A4_HEIGHT_PX = 1123;
+const MIN_SAFE_PAGE_SLICE_HEIGHT_PX = 160;
+const PAGE_CONTINUATION_TOP_MARGIN_PX = 48;
+const PAGE_CONTINUATION_BOTTOM_MARGIN_PX = 56;
 
-type PdfImageFormat = 'JPEG' | 'PNG' | 'WEBP';
-
-interface PreparedPdfPhoto {
-  photo: ComplaintPhoto;
-  width: number;
-  height: number;
-  format: PdfImageFormat;
+interface PdfRenderTarget {
+  container: HTMLDivElement;
+  source: HTMLElement;
+  style: HTMLStyleElement;
 }
 
-interface FittedImageDimensions {
-  width: number;
-  height: number;
-}
-
-const PAGE_MARGIN_X = 20;
-const PAGE_MARGIN_BOTTOM = 20;
-const PAGE_START_Y = 20;
-const CONTENT_WIDTH = 170;
-const PHOTO_GALLERY_GAP = 10;
-const PHOTO_CARD_PADDING = 4;
-const PHOTO_FRAME_HEIGHT = 96;
-const PHOTO_SINGLE_FRAME_HEIGHT = 130;
-
-const fitImageWithinBox = (
-  sourceWidth: number,
-  sourceHeight: number,
-  maxWidth: number,
-  maxHeight: number
-): FittedImageDimensions => {
-  const widthRatio = maxWidth / sourceWidth;
-  const heightRatio = maxHeight / sourceHeight;
-  const scale = Math.min(widthRatio, heightRatio);
-
-  return {
-    width: sourceWidth * scale,
-    height: sourceHeight * scale,
-  };
-};
-
-const getPdfImageFormat = (type: string): PdfImageFormat => {
-  if (type.includes('png')) return 'PNG';
-  if (type.includes('webp')) return 'WEBP';
-  return 'JPEG';
-};
-
-const loadPhotoForPdf = async (photo: ComplaintPhoto): Promise<PreparedPdfPhoto> =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
-
-    image.onload = () =>
-      resolve({
-        photo,
-        width: image.naturalWidth || 1,
-        height: image.naturalHeight || 1,
-        format: getPdfImageFormat(photo.type),
-      });
-
-    image.onerror = () =>
-      reject(new Error(`Não foi possível carregar a imagem ${photo.name} para o PDF.`));
-
-    image.src = photo.dataUrl;
+const waitForNextFrame = (): Promise<void> =>
+  new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
   });
 
-const ensurePageSpace = (doc: jsPDF, currentY: number, requiredHeight: number): number => {
-  const pageHeight = doc.internal.pageSize.height;
+const waitForImages = async (root: ParentNode): Promise<void> => {
+  const images = Array.from(root.querySelectorAll('img'));
 
-  if (currentY + requiredHeight <= pageHeight - PAGE_MARGIN_BOTTOM) {
-    return currentY;
-  }
+  await Promise.all(
+    images.map((image) => {
+      if (image.complete) return Promise.resolve();
 
-  doc.addPage();
-  return PAGE_START_Y;
-};
-
-const addSectionTitle = (doc: jsPDF, title: string, startY: number): number => {
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text(title, PAGE_MARGIN_X, startY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  return startY + 10;
-};
-
-const addPhotoGallery = async (
-  doc: jsPDF,
-  item: ComplaintSummaryPhotoItem,
-  startY: number
-): Promise<number> => {
-  let yPos = ensurePageSpace(doc, startY, 12);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text(item.label, PAGE_MARGIN_X, yPos);
-  doc.setFont('helvetica', 'normal');
-  yPos += 6;
-
-  if (item.photos.length === 0) {
-    yPos = ensurePageSpace(doc, yPos, 8);
-    doc.text(item.emptyText, PAGE_MARGIN_X, yPos);
-    return yPos + 8;
-  }
-
-  const preparedPhotos = await Promise.all(item.photos.map((photo) => loadPhotoForPdf(photo)));
-
-  for (let index = 0; index < preparedPhotos.length; index += 2) {
-    const rowPhotos = preparedPhotos.slice(index, index + 2);
-    const columns = rowPhotos.length === 1 ? 1 : 2;
-    const cardWidth =
-      columns === 1
-        ? CONTENT_WIDTH
-        : (CONTENT_WIDTH - PHOTO_GALLERY_GAP) / 2;
-    const frameWidth = cardWidth - PHOTO_CARD_PADDING * 2;
-    const frameHeight =
-      columns === 1 ? PHOTO_SINGLE_FRAME_HEIGHT : PHOTO_FRAME_HEIGHT;
-    const rowMetrics = rowPhotos.map((entry) => {
-      const fittedImage = fitImageWithinBox(
-        entry.width,
-        entry.height,
-        frameWidth,
-        frameHeight
-      );
-      const captionLines = doc.splitTextToSize(
-        entry.photo.name,
-        cardWidth - PHOTO_CARD_PADDING * 2
-      );
-      const cardHeight =
-        frameHeight + captionLines.length * 5 + PHOTO_CARD_PADDING * 3 + 2;
-
-      return {
-        ...entry,
-        fittedImage,
-        captionLines,
-        cardHeight,
-      };
-    });
-
-    const rowHeight = Math.max(...rowMetrics.map((entry) => entry.cardHeight));
-    yPos = ensurePageSpace(doc, yPos, rowHeight);
-
-    rowMetrics.forEach((entry, rowIndex) => {
-      const xPos = PAGE_MARGIN_X + rowIndex * (cardWidth + PHOTO_GALLERY_GAP);
-      const frameX = xPos + PHOTO_CARD_PADDING;
-      const frameY = yPos + PHOTO_CARD_PADDING;
-      const imageX = frameX + (frameWidth - entry.fittedImage.width) / 2;
-      const imageY = frameY + (frameHeight - entry.fittedImage.height) / 2;
-      const captionY = frameY + frameHeight + 5;
-
-      doc.roundedRect(xPos, yPos, cardWidth, rowHeight, 3, 3);
-      doc.addImage(
-        entry.photo.dataUrl,
-        entry.format,
-        imageX,
-        imageY,
-        entry.fittedImage.width,
-        entry.fittedImage.height
-      );
-      doc.text(entry.captionLines, frameX, captionY);
-    });
-
-    yPos += rowHeight + 8;
-  }
-
-  return yPos;
-};
-
-export const generatePDF = async (complaint: ComplaintDraft): Promise<Blob> => {
-  const doc = new jsPDF();
-  const pdfDoc = doc as AutoTableDoc;
-  const sections = buildComplaintSummarySections(complaint);
-
-  doc.setFont('helvetica');
-
-  doc.setFontSize(20);
-  doc.text('Relatório de Denúncia', 105, 20, { align: 'center' });
-  doc.setFontSize(16);
-  doc.text(
-    complaint.address.councilRegion?.nome ?? 'Conselho Tutelar não identificado',
-    105,
-    30,
-    { align: 'center' }
-  );
-  doc.setFontSize(12);
-
-  let yPos = 45;
-
-  for (const [index, section] of sections.entries()) {
-    yPos = ensurePageSpace(doc, yPos, 16);
-    yPos = addSectionTitle(doc, `${index + 1}. ${section.title}`, yPos);
-
-    if (section.description) {
-      const descriptionLines = doc.splitTextToSize(section.description, CONTENT_WIDTH);
-      yPos = ensurePageSpace(doc, yPos, descriptionLines.length * 6 + 4);
-      doc.text(descriptionLines, PAGE_MARGIN_X, yPos);
-      yPos += descriptionLines.length * 6 + 4;
-    }
-
-    const textItems = section.items.filter((item) => item.type === 'text');
-    const photoItems = section.items.filter((item) => item.type === 'photos');
-
-    if (textItems.length > 0) {
-      pdfDoc.autoTable({
-        startY: yPos,
-        head: [['Pergunta', 'Resposta']],
-        body: textItems.map((item) => [item.label, item.value]),
-        theme: 'striped',
-        headStyles: {
-          fillColor: [251, 192, 45],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-        },
-        bodyStyles: {
-          fillColor: [255, 255, 255],
-          textColor: [66, 66, 66],
-          fontSize: 10,
-          valign: 'top',
-        },
-        columnStyles: {
-          0: { cellWidth: 68 },
-          1: { cellWidth: 'auto' },
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245],
-          textColor: [66, 66, 66],
-          fontSize: 10,
-        },
-        margin: { left: PAGE_MARGIN_X, right: PAGE_MARGIN_X },
+      return new Promise<void>((resolve) => {
+        image.onload = () => resolve();
+        image.onerror = () => resolve();
       });
+    })
+  );
+};
 
-      yPos = pdfDoc.lastAutoTable.finalY + 10;
-    }
+const createPdfRenderTarget = async (html: string): Promise<PdfRenderTarget> => {
+  const parsedDocument = new DOMParser().parseFromString(html, 'text/html');
+  const sourceTemplate = parsedDocument.querySelector<HTMLElement>('.complaint-report');
+  const styleContent = Array.from(parsedDocument.querySelectorAll('style'))
+    .map((style) => style.textContent || '')
+    .join('\n');
 
-    for (const item of photoItems) {
-      yPos = await addPhotoGallery(doc, item, yPos);
-    }
-
-    yPos += 8;
+  if (!sourceTemplate) {
+    throw new Error('Template do PDF indisponível.');
   }
 
-  const pageCount = doc.getNumberOfPages();
-  for (let pageIndex = 1; pageIndex <= pageCount; pageIndex += 1) {
-    doc.setPage(pageIndex);
-    doc.setFontSize(10);
-    doc.text(
-      `Powered by ProtegeSaúde, ${new Date().toLocaleDateString('pt-BR')}`,
-      doc.internal.pageSize.width / 2,
-      doc.internal.pageSize.height - 10,
-      { align: 'center' }
+  const style = document.createElement('style');
+  style.textContent = styleContent;
+  style.setAttribute('data-complaint-pdf-template', 'true');
+
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '0';
+  container.style.top = '0';
+  container.style.width = `${A4_WIDTH_PX}px`;
+  container.style.minHeight = `${A4_HEIGHT_PX}px`;
+  container.style.pointerEvents = 'none';
+  container.style.zIndex = '-1';
+  container.style.background = '#ffffff';
+  container.setAttribute('aria-hidden', 'true');
+
+  const source = document.importNode(sourceTemplate, true);
+  container.appendChild(source);
+  document.head.appendChild(style);
+  document.body.appendChild(container);
+
+  await waitForImages(container);
+  await waitForNextFrame();
+
+  const bounds = source.getBoundingClientRect();
+  if (bounds.width === 0 || bounds.height === 0) {
+    container.remove();
+    style.remove();
+    throw new Error('Template do PDF foi carregado sem dimensões visíveis.');
+  }
+
+  return {
+    container,
+    source,
+    style,
+  };
+};
+
+const hasVisibleCanvasContent = (canvas: HTMLCanvasElement): boolean => {
+  const context = canvas.getContext('2d');
+
+  if (!context) return true;
+
+  const step = 24;
+  const { width, height } = canvas;
+
+  for (let y = 0; y < height; y += step) {
+    for (let x = 0; x < width; x += step) {
+      const [red, green, blue, alpha] = context.getImageData(x, y, 1, 1).data;
+      const isVisible = alpha > 0;
+      const isWhite = red > 248 && green > 248 && blue > 248;
+
+      if (isVisible && !isWhite) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+const getSafePageBreakPositions = (source: HTMLElement): number[] => {
+  const sourceTop = source.getBoundingClientRect().top;
+  const breakableElements = Array.from(
+    source.querySelectorAll<HTMLElement>(
+      [
+        '.complaint-section',
+        '.complaint-section__title',
+        '.complaint-table thead tr',
+        '.complaint-table tbody tr',
+        '.complaint-photo-group',
+        '.complaint-photo-card',
+        '.complaint-report__footer',
+      ].join(',')
+    )
+  );
+  const positions = breakableElements.map((element) =>
+    Math.max(0, Math.round(element.getBoundingClientRect().top - sourceTop))
+  );
+
+  return Array.from(new Set([0, ...positions, source.scrollHeight])).sort(
+    (first, second) => first - second
+  );
+};
+
+const getNextPageBreak = (
+  currentPosition: number,
+  idealPosition: number,
+  totalHeight: number,
+  safeBreakPositions: number[]
+): number => {
+  if (idealPosition >= totalHeight) {
+    return totalHeight;
+  }
+
+  const minimumPosition = currentPosition + MIN_SAFE_PAGE_SLICE_HEIGHT_PX;
+  const safePosition = [...safeBreakPositions]
+    .reverse()
+    .find((position) => position > minimumPosition && position <= idealPosition);
+
+  return safePosition || idealPosition;
+};
+
+const createCanvasSlice = (
+  canvas: HTMLCanvasElement,
+  startY: number,
+  height: number
+): HTMLCanvasElement => {
+  const slice = document.createElement('canvas');
+  slice.width = canvas.width;
+  slice.height = height;
+
+  const context = slice.getContext('2d');
+  if (!context) {
+    throw new Error('Não foi possível preparar uma página do PDF.');
+  }
+
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, slice.width, slice.height);
+  context.drawImage(
+    canvas,
+    0,
+    startY,
+    canvas.width,
+    height,
+    0,
+    0,
+    canvas.width,
+    height
+  );
+
+  return slice;
+};
+
+const renderHtmlToPdf = async (source: HTMLElement): Promise<Blob> => {
+  const { default: html2canvas } = await import('html2canvas');
+  const canvas = await html2canvas(source, {
+    backgroundColor: '#ffffff',
+    imageTimeout: 0,
+    logging: false,
+    scale: 2,
+    useCORS: true,
+    windowWidth: A4_WIDTH_PX,
+    windowHeight: Math.max(A4_HEIGHT_PX, source.scrollHeight),
+  });
+
+  if (!hasVisibleCanvasContent(canvas)) {
+    throw new Error('O template do PDF foi renderizado em branco.');
+  }
+
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'a4',
+  });
+  const canvasScale = canvas.width / source.getBoundingClientRect().width;
+  const pdfPointScale = A4_WIDTH_PT / A4_WIDTH_PX;
+  const sourceHeight = source.scrollHeight;
+  const safeBreakPositions = getSafePageBreakPositions(source);
+  let currentPosition = 0;
+  let pageIndex = 0;
+
+  while (currentPosition < sourceHeight) {
+    if (pageIndex > 0) {
+      doc.addPage();
+    }
+
+    const topMarginPx = pageIndex === 0 ? 0 : PAGE_CONTINUATION_TOP_MARGIN_PX;
+    const availablePageHeightPx =
+      A4_HEIGHT_PX - topMarginPx - PAGE_CONTINUATION_BOTTOM_MARGIN_PX;
+    const idealPosition = Math.min(
+      currentPosition + availablePageHeightPx,
+      sourceHeight
     );
+    const nextPosition = getNextPageBreak(
+      currentPosition,
+      idealPosition,
+      sourceHeight,
+      safeBreakPositions
+    );
+    const sliceStartY = Math.round(currentPosition * canvasScale);
+    const sliceHeight = Math.max(
+      1,
+      Math.min(canvas.height - sliceStartY, Math.round((nextPosition - currentPosition) * canvasScale))
+    );
+    const slice = createCanvasSlice(canvas, sliceStartY, sliceHeight);
+    const imageHeightPt = (slice.height * A4_WIDTH_PT) / slice.width;
+
+    doc.addImage(
+      slice.toDataURL('image/jpeg', 0.95),
+      'JPEG',
+      0,
+      topMarginPx * pdfPointScale,
+      A4_WIDTH_PT,
+      imageHeightPt
+    );
+
+    currentPosition = nextPosition;
+    pageIndex += 1;
   }
 
   return doc.output('blob');
+};
+
+export const generatePDF = async (complaint: ComplaintDraft): Promise<Blob> => {
+  const html = buildComplaintPdfHtml(complaint);
+  const target = await createPdfRenderTarget(html);
+
+  try {
+    return await renderHtmlToPdf(target.source);
+  } finally {
+    target.container.remove();
+    target.style.remove();
+  }
 };

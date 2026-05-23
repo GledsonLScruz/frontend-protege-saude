@@ -1,0 +1,36 @@
+{
+  "title": "ProtegeSaúde",
+  "description": "Plataforma dedicada ao combate à violência infantojuvenil através do olhar atento dos profissionais da saúde.",
+  "sections": [
+    {
+      "title": "Links Rápidos",
+      "links": [
+        {
+          "title": "Fazer denúncia",
+          "url": "/denuncia"
+        },
+        {
+          "title": "Documentos Norteadores",
+          "url": "/documentos-norteadores"
+        }
+      ]
+    },
+    {
+      "title": "Contatos de Emergência",
+      "contacts": [
+        {
+          "title": "Disque 100 - Direitos Humanos",
+          "phone": "100"
+        },
+        {
+          "title": "Disque 180 - Violência contra Mulher",
+          "phone": "180"
+        },
+        {
+          "title": "Disque 190 - Polícia Militar",
+          "phone": "190"
+        }
+      ]
+    }
+  ]
+}

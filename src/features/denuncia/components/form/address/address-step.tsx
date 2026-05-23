@@ -272,16 +272,6 @@ export const AddressStep: React.FC<AddressStepProps> = ({
           <label>Bairro</label>
           <input type="text" value={address.neighborhood || ''} placeholder="Aguardando CEP validado" disabled />
         </div>
-
-        <div className="form-group">
-          <label>Conselho Tutelar</label>
-          <input
-            type="text"
-            value={address.councilRegion?.nome || ''}
-            placeholder="Aguardando CEP validado"
-            disabled
-          />
-        </div>
       </div>
     </div>
   );

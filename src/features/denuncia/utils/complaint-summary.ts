@@ -13,7 +13,7 @@ import {
   isPhotoAnswer,
 } from './dynamic-form';
 
-interface ComplaintSummaryTextItem {
+export interface ComplaintSummaryTextItem {
   type: 'text';
   label: string;
   value: string;

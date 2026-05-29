@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE_URL, API_HOST } from '../../shared/config/api';
 
 interface DocumentoApiResponse {
   id: number;
@@ -52,9 +53,6 @@ export interface DocumentoNorteador {
   createdAt: string;
   updatedAt: string;
 }
-
-const API_BASE_URL = '/api'
-const API_HOST = API_BASE_URL.replace(/\/api$/, '');
 
 const toStringValue = (value: unknown): string | null => {
   if (typeof value !== 'string') {

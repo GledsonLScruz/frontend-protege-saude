@@ -5,6 +5,7 @@ import {
   PublicForm,
   PublicProfession,
 } from './types/denuncia';
+import { API_BASE_URL } from '../../shared/config/api';
 
 interface PublicProfessionApiResponse {
   id: number;
@@ -79,7 +80,7 @@ const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => 
 };
 
 export class DenunciaService {
-  private readonly API_URL = '/api';
+  private readonly API_URL = API_BASE_URL;
 
   async listPublicProfessions(): Promise<PublicProfession[]> {
     try {

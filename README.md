@@ -2,17 +2,11 @@
 
 ## Backend URL
 
-This project reads the backend URL from `VITE_BACKEND_URL`.
+The app uses `/api` by default. In local development, Vite proxies `/api` and
+`/data` to the backend. In Docker, Nginx proxies the same paths to the
+`backend:8080` service inside the Compose network.
 
-For local development, create a `.env.local` file in the project root:
-
-```env
-VITE_BACKEND_URL=http://localhost:8080
-```
-
-For production builds, set `VITE_BACKEND_URL` in `.env.production` or pass it during the Docker build.
-
-The app automatically appends `/api`, so use the backend host only.
+No `.env` file is required for local development or Docker deploy.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

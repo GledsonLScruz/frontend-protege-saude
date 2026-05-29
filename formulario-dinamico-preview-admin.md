@@ -3695,7 +3695,7 @@ const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => 
 };
 
 export class DenunciaService {
-  private readonly API_URL = normalizeApiBaseUrl(import.meta.env.VITE_BACKEND_URL);
+  private readonly API_URL = '/api';
 
   async listPublicProfessions(): Promise<PublicProfession[]> {
     try {

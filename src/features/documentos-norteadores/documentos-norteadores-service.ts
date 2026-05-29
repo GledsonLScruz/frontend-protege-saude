@@ -53,22 +53,7 @@ export interface DocumentoNorteador {
   updatedAt: string;
 }
 
-const DEFAULT_API_BASE_URL = 'http://localhost:8080/api';
-
-const normalizeApiBaseUrl = (rawBaseUrl: string | undefined): string => {
-  const trimmedBaseUrl = rawBaseUrl?.trim();
-
-  if (!trimmedBaseUrl) {
-    return DEFAULT_API_BASE_URL;
-  }
-
-  const withoutTrailingSlash = trimmedBaseUrl.replace(/\/+$/, '');
-  return withoutTrailingSlash.endsWith('/api')
-    ? withoutTrailingSlash
-    : `${withoutTrailingSlash}/api`;
-};
-
-const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_BACKEND_URL);
+const API_BASE_URL = '/api'
 const API_HOST = API_BASE_URL.replace(/\/api$/, '');
 
 const toStringValue = (value: unknown): string | null => {
@@ -107,10 +92,10 @@ const toFocusPoint = (value: unknown): DocumentoFocusPoint | null => {
 
   const title = toStringValue(
     focusPoint.title ??
-      focusPoint.titulo ??
-      focusPoint.nome ??
-      focusPoint.texto ??
-      focusPoint.ponto
+    focusPoint.titulo ??
+    focusPoint.nome ??
+    focusPoint.texto ??
+    focusPoint.ponto
   );
 
   if (!title) {

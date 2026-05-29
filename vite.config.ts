@@ -5,10 +5,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({ 
+    VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon-64x64.png', 'apple-touch-icon-180x180.png'],
-      devOptions:  {
+      devOptions: {
         enabled: true,
       },
       manifest: {
@@ -38,5 +38,20 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/data": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

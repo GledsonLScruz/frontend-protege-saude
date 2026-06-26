@@ -45,9 +45,8 @@
   height: 72px;
   width: auto;
   max-width: min(340px, 72vw);
-  display: flex;
+  display: block;
   object-fit: contain;
-  border-radius: 10px;
 }
 
 .header-title {

@@ -40,16 +40,16 @@ export const Footer = ({
         <div className="footer-section">
           <h4>Parcerias</h4>
           <div className="parcerias">
-            <img src={ufcg} width={80} height={75}/>
-            <img src={uepb} width={200} height={70}/>
+            <img src={ufcg} width={80} height={75} />
+            <img src={uepb} width={200} height={70} />
           </div>
         </div>
       </div>
 
-     
+
 
       <div className="footer-bottom">
-        <p>&copy; 2025 ProtegeSaúde. Todos os direitos reservados.</p>
+        <p>&copy; 2026 ProtegeSaúde. Todos os direitos reservados.</p>
       </div>
     </footer>
   )

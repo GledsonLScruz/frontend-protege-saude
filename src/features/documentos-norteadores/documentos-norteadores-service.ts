@@ -165,7 +165,7 @@ export class DocumentosNorteadoresService {
       id: documento.id,
       profissaoId: documento.profissao_id,
       title: documento.titulo,
-      description: documento.descricao ?? '',
+      description: toStringValue(documento.descricao) ?? '',
       focusPoints: parseFocusPoints(documento.pontos_foco),
       onlineUrl: toStringValue(documento.url_online),
       fileUrl: normalizeResourceUrl(toStringValue(documento.arquivo)),

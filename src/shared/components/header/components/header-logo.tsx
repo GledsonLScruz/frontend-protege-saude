@@ -1,4 +1,4 @@
-import logoImage from '../../../../assets/protege-saude-logo.jpeg';
+import logoImage from '../../../../assets/protege-saude-header-logo.png';
 
 const Logo = () => {
   return (

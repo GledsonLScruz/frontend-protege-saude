@@ -437,6 +437,7 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
               {documentos.map((documento) => {
                 const hasOnlineUrl = Boolean(documento.onlineUrl);
                 const hasDownloadSource = Boolean(documento.fileUrl);
+                const documentDescription = documento.description.trim();
 
                 return (
                   <div className="legaldoc-document-card" key={documento.id}>
@@ -449,9 +450,11 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
                     </div>
                     <div className="legaldoc-document-content">
                       <h3 className="legaldoc-document-title">{documento.title}</h3>
-                      <p className="legaldoc-document-description">
-                        {documento.description || 'Sem descrição disponível.'}
-                      </p>
+                      {documentDescription && (
+                        <p className="legaldoc-document-description">
+                          {documentDescription}
+                        </p>
+                      )}
 
                       {documento.focusPoints.length > 0 && (
                         <div className="legaldoc-focus-points">

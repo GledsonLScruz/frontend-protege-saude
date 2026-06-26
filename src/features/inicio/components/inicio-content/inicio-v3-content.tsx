@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Header } from '../../../../shared/components/header/components'
 import { useNavigate } from 'react-router-dom';
 import { FAQ } from '../faq';
-import illustration from '../../../../assets/father.jpeg'
+import illustration from '../../../../assets/protege-saude-home-illustration.png'
 
 import './inicio-v3-content.css'
 import { Footer } from '../../../../shared/components/footer';
@@ -38,9 +38,7 @@ export const InicioV3Content = () => {
             <span>olhar profissional</span>
           </h1>
           <p className="hero-description">
-            Como profissional da Odontologia, você tem um papel fundamental na identificação
-            de sinais de violência infantojuvenil. Portanto, use nossa plataforma para reportar de forma anônima casos suspeitos
-            e ajudar a proteger quem mais precisa.
+            Como profissional da Saúde você tem um papel fundamental para a identificação de sinais de violência infantojuvenil. Use nossa plataforma para reportar anonimamente casos suspeitos e ajudar a proteger quem mais precisa.
           </p>
           <div className="cta-button-container">
             <button className="cta-button" onClick={openModal}>
@@ -53,13 +51,13 @@ export const InicioV3Content = () => {
         </div>
 
         <div className="illustration">
-          <img className="animated-kid-image" src={illustration} alt="pai e filha" width={550} height={450} />
+          <img className="animated-kid-image" src={illustration} alt="Profissional de saúde abraçando uma criança" width={550} height={367} />
         </div>
-        
+
       </main>
       <FAQ />
-      <Footer pageTitle='ProtegeSaúde' pageDescription='Plataforma dedicada ao combate à violência infantojuvenil através do olhar atento dos profissionais da saúde.'/>
-    
+      <Footer pageTitle='ProtegeSaúde' pageDescription='Plataforma dedicada ao combate à violência infantojuvenil através do olhar atento dos profissionais da saúde.' />
+
       {showModal && (
         <div className="feedback-modal-overlay">
           <div className="feedback-modal" ref={modalRef}>

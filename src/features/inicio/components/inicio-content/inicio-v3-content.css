@@ -120,11 +120,10 @@ main {
 
 .illustration img {
   width: 100%;
-  aspect-ratio: 3/2;
+  height: auto;
   border-radius: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  object-fit: contain;
   position: relative;
   transition: all 0.3s ease-in-out;
   cursor: pointer;

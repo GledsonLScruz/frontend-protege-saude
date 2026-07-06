@@ -41,8 +41,7 @@ export const ProfessionSelectionStep: React.FC<ProfessionSelectionStepProps> = (
         <span className="profession-selection-kicker">Nova denúncia</span>
         <h2>Escolha a profissão para carregar o formulário correto</h2>
         <p>
-          O conteúdo da denúncia é configurado por profissão. O endereço e o conselho
-          tutelar continuam sendo preenchidos no fluxo seguinte.
+          O conteúdo da denúncia é configurado por profissão.
         </p>
 
         {errorMessage && (

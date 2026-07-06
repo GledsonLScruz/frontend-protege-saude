@@ -90,7 +90,8 @@
 .step-label {
   position: static;
   margin-top: 0.9rem;
-  width: 100%;
+  width: max-content;
+  max-width: min(9rem, calc(100vw - 2rem));
   min-height: 2.4rem;
   font-size: 12px;
   font-weight: 500;
@@ -99,8 +100,9 @@
   transform: translateY(-6px);
   transition: all 0.3s ease;
   white-space: normal;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
   text-align: center;
   line-height: 1.25;
 }

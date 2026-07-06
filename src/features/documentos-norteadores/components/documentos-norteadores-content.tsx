@@ -363,7 +363,7 @@ const DocumentosNorteadoresContent: React.FC<DocumentosNorteadoresContentProps> 
             </h1>
             <p className="legaldoc-hero-description">
               Acesse documentos importantes com foco em artigos específicos relevantes
-              para profissionais da saúde e educação.
+              para profissionais da saúde.
             </p>
           </div>
 

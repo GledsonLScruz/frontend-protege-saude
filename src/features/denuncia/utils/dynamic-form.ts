@@ -8,9 +8,26 @@ import {
   SwitchConditionalAnswer,
 } from '../types/denuncia';
 
-export const DEFAULT_NOT_INFORMED = 'Não informado';
+export const DEFAULT_NOT_INFORMED = 'Não';
 const DEFAULT_NOT_APPLICABLE = 'Não se aplica';
 export const DEFAULT_NO_PHOTOS = 'Nenhuma foto selecionada.';
+const NOT_INFORMED_TEXT_PATTERN = /^n[aã]o informado$/i;
+
+export const normalizeNotInformedText = (value: string): string => {
+  const trimmedValue = value.trim();
+
+  return NOT_INFORMED_TEXT_PATTERN.test(trimmedValue)
+    ? DEFAULT_NOT_INFORMED
+    : trimmedValue;
+};
+
+export const formatTextWithDefault = (value?: string | null): string => {
+  if (!value) {
+    return DEFAULT_NOT_INFORMED;
+  }
+
+  return normalizeNotInformedText(value) || DEFAULT_NOT_INFORMED;
+};
 
 const getDateParts = (value: string): [number, number, number] | null => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -41,13 +58,13 @@ const isSwitchConditionalAnswer = (
 ): value is SwitchConditionalAnswer =>
   Boolean(
     value &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      'valor' in value &&
-      'selecionados' in value &&
-      (((value as SwitchConditionalAnswer).valor === null) ||
-        typeof (value as SwitchConditionalAnswer).valor === 'boolean') &&
-      Array.isArray((value as SwitchConditionalAnswer).selecionados)
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    'valor' in value &&
+    'selecionados' in value &&
+    (((value as SwitchConditionalAnswer).valor === null) ||
+      typeof (value as SwitchConditionalAnswer).valor === 'boolean') &&
+    Array.isArray((value as SwitchConditionalAnswer).selecionados)
   );
 
 const getAllowedConditionalFieldValues = (field: PublicFormField): string[] =>
@@ -73,10 +90,10 @@ export const normalizeSwitchConditionalAnswer = (
 
   const normalizedSelectedValues = value.valor
     ? value.selecionados.filter(
-        (item): item is string =>
-          typeof item === 'string' &&
-          (allowedConditionalValues.length === 0 || allowedConditionalValues.includes(item))
-      )
+      (item): item is string =>
+        typeof item === 'string' &&
+        (allowedConditionalValues.length === 0 || allowedConditionalValues.includes(item))
+    )
     : [];
 
   return {
@@ -358,7 +375,7 @@ const getFieldOptionLabel = (
   optionValue: string
 ): string => {
   const option = getFieldOptions(field).find((item) => item.valor === optionValue);
-  return option?.label ?? optionValue;
+  return normalizeNotInformedText(option?.label ?? optionValue);
 };
 
 export const formatDynamicAnswerValue = (
@@ -405,9 +422,9 @@ export const formatDynamicAnswerValue = (
     case 'checkbox':
       return Array.isArray(value)
         ? value
-            .filter((item): item is string => typeof item === 'string')
-            .map((item) => getFieldOptionLabel(field, item))
-            .join(', ')
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => getFieldOptionLabel(field, item))
+          .join(', ')
         : DEFAULT_NOT_APPLICABLE;
 
     case 'data':
@@ -426,6 +443,6 @@ export const formatDynamicAnswerValue = (
         : DEFAULT_NO_PHOTOS;
 
     default:
-      return String(value).trim() || DEFAULT_NOT_INFORMED;
+      return formatTextWithDefault(String(value));
   }
 };

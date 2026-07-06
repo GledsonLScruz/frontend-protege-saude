@@ -7,8 +7,8 @@ import {
 } from '../types/denuncia';
 import {
   DEFAULT_NO_PHOTOS,
-  DEFAULT_NOT_INFORMED,
   formatDynamicAnswerValue,
+  formatTextWithDefault,
   getFieldStorageKey,
   isPhotoAnswer,
 } from './dynamic-form';
@@ -45,19 +45,19 @@ const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] =
   const cityState = [draft.address.city, draft.address.state]
     .filter((value) => value?.trim())
     .join('/');
-  const councilName = draft.address.councilRegion?.nome?.trim() || DEFAULT_NOT_INFORMED;
+  const councilName = formatTextWithDefault(draft.address.councilRegion?.nome);
 
   if (draft.address.hasNoInformation) {
     return [
       {
         type: 'text',
         label: 'Bairro aproximado',
-        value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
+        value: formatTextWithDefault(draft.address.neighborhood),
       },
       {
         type: 'text',
         label: 'Cidade/UF',
-        value: cityState || DEFAULT_NOT_INFORMED,
+        value: formatTextWithDefault(cityState),
       },
       {
         type: 'text',
@@ -71,27 +71,27 @@ const getAddressSummaryItems = (draft: ComplaintDraft): ComplaintSummaryItem[] =
     {
       type: 'text',
       label: 'CEP',
-      value: draft.address.cep?.trim() || DEFAULT_NOT_INFORMED,
+      value: formatTextWithDefault(draft.address.cep),
     },
     {
       type: 'text',
       label: 'Rua',
-      value: draft.address.street?.trim() || DEFAULT_NOT_INFORMED,
+      value: formatTextWithDefault(draft.address.street),
     },
     {
       type: 'text',
       label: 'Número',
-      value: draft.address.number?.trim() || DEFAULT_NOT_INFORMED,
+      value: formatTextWithDefault(draft.address.number),
     },
     {
       type: 'text',
       label: 'Bairro',
-      value: draft.address.neighborhood?.trim() || DEFAULT_NOT_INFORMED,
+      value: formatTextWithDefault(draft.address.neighborhood),
     },
     {
       type: 'text',
       label: 'Cidade/UF',
-      value: cityState || DEFAULT_NOT_INFORMED,
+      value: formatTextWithDefault(cityState),
     },
     {
       type: 'text',

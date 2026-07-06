@@ -38,7 +38,7 @@ export const InicioV3Content = () => {
             <span>olhar profissional</span>
           </h1>
           <p className="hero-description">
-            Como profissional da Saúde você tem um papel fundamental para a identificação de sinais de violência infantojuvenil. Use nossa plataforma para reportar anonimamente casos suspeitos e ajudar a proteger quem mais precisa.
+            Como profissional da Saúde, você tem um papel fundamental para a identificação de sinais de violência infantojuvenil. Use nossa plataforma para reportar, anonimamente, casos suspeitos e ajudar a proteger quem mais precisa.
           </p>
           <div className="cta-button-container">
             <button className="cta-button" onClick={openModal}>

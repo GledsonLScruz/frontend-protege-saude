@@ -41,7 +41,7 @@ export const ConfirmacaoDenuncia = () => {
   };
 
   const openFeedbackForm = () => {
-    window.open('https://forms.gle/FAbUWmAio5QDWBhTA', '_blank');
+    window.open('https://forms.gle/iUPg2t1qEAmKGUNE6', '_blank');
     setShowModal(false);
   };
 

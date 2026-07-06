@@ -20,7 +20,7 @@ export const FAQ = () => {
     },
     {
       question: "Que tipos de casos posso denunciar?",
-      answer: "Você pode denunciar qualquer suspeita ou caso confirmado de violência ou maus-tratos contra crianças e adolescentes identificados durante o atendimento, incluindo: violência física, psicológica, negligência, violência doméstica e demais formas de agressão."
+      answer: "Você pode denunciar qualquer suspeita ou caso confirmado de violência ou maus-tratos contra crianças e adolescentes identificado durante o atendimento, incluindo violência física, psicológica, negligência, violência doméstica e demais formas de agressão."
     },
     {
       question: "Como identificar sinais de violência?",
